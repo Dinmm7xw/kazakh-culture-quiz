@@ -75,22 +75,22 @@
 
       <!-- Utility Controls -->
       <div class="header-actions">
-        <button id="btn-podium" class="btn-action-icon" title="Жеңімпаздар тұғыры">
+        <button id="btn-podium" class="btn-action-icon" title="Жеңімпаздар тұғыры" onclick="window.app ? window.app.openPodiumModal() : null">
           <span>🏆</span>
           <span class="btn-text">Тұғыр</span>
         </button>
-        <button id="btn-qbank" class="btn-action-icon" title="Сұрақтар қоры">
+        <button id="btn-qbank" class="btn-action-icon" title="Сұрақтар қоры" onclick="window.app ? window.app.openQBankModal() : null">
           <span>📚</span>
           <span class="btn-text">Сұрақтар (90)</span>
         </button>
-        <button id="btn-mute" class="btn-action-icon" title="Дыбысты қосу/өшіру">
-          🔊
+        <button id="btn-mute" class="btn-action-icon" title="Дыбысты қосу/өшіру" onclick="window.app ? window.app.toggleAudioMute() : null">
+          <span id="mute-icon">🔊</span>
         </button>
-        <button id="btn-fullscreen" class="btn-action-icon" title="Толық экран режимі">
-          ⛶
+        <button id="btn-fullscreen" class="btn-action-icon" title="Толық экран режимі" onclick="window.app ? window.app.toggleFullscreen() : null">
+          <span id="fullscreen-icon">⛶</span>
         </button>
-        <button id="btn-reset" class="btn-action-icon btn-danger" title="Ойынды қайта бастау">
-          🔄
+        <button id="btn-reset" class="btn-action-icon btn-danger" title="Ойынды қайта бастау" onclick="window.app ? window.app.resetGame() : null">
+          <span>🔄</span>
         </button>
       </div>
     </header>

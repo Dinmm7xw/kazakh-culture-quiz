@@ -239,6 +239,20 @@ class QuizApp {
     this.modalPodium = document.getElementById('modal-podium');
     this.modalQBank = document.getElementById('modal-qbank');
 
+    // Utility Header Controls
+    this.btnPodium = document.getElementById('btn-podium');
+    this.btnQBank = document.getElementById('btn-qbank');
+    this.btnMute = document.getElementById('btn-mute');
+    this.btnFullscreen = document.getElementById('btn-fullscreen');
+    this.btnReset = document.getElementById('btn-reset');
+    this.muteIcon = document.getElementById('mute-icon');
+    this.fullscreenIcon = document.getElementById('fullscreen-icon');
+    this.podiumContent = document.getElementById('podium-content');
+    this.qbankList = document.getElementById('qbank-list');
+    this.qbankFilter = document.getElementById('qbank-topic-filter');
+    this.btnClosePodium = document.getElementById('btn-close-podium');
+    this.btnCloseQBank = document.getElementById('btn-close-qbank');
+
     // Question modal elements
     this.qModalTopic = document.getElementById('qmodal-topic');
     this.qModalPoints = document.getElementById('qmodal-points');
@@ -849,6 +863,218 @@ class QuizApp {
   }
 
   // ==========================================
+  // PODIUM MODAL LOGIC (ТҰҒЫР)
+  // ==========================================
+  openPodiumModal() {
+    sounds.playWin();
+    this.confetti.blast(100);
+
+    const sorted = [...this.students].sort((a, b) => b.score - a.score);
+    const first = sorted[0] || { name: 'Ешкім жоқ', score: 0, color: '#F59E0B' };
+    const second = sorted[1] || { name: 'Ешкім жоқ', score: 0, color: '#94A3B8' };
+    const third = sorted[2] || { name: 'Ешкім жоқ', score: 0, color: '#D97706' };
+    const others = sorted.slice(3);
+
+    if (this.podiumContent) {
+      this.podiumContent.innerHTML = `
+        <div class="podium-stage">
+          <!-- 2nd Place: Silver -->
+          <div class="podium-step step-2">
+            <div class="podium-avatar" style="background: ${second.color || '#8B5CF6'}">
+              ${second.name ? second.name.charAt(0) : '2'}
+            </div>
+            <div class="podium-name">${second.isTeacher ? '👩‍🏫 ' : ''}${second.name}</div>
+            <div class="podium-score">${second.score} ұпай</div>
+            <div class="podium-pillar p2">
+              <span class="pillar-rank">🥈 2-ОРЫН</span>
+            </div>
+          </div>
+
+          <!-- 1st Place: Gold Champion -->
+          <div class="podium-step step-1">
+            <span class="crown-icon">👑</span>
+            <div class="podium-avatar main" style="background: ${first.color || '#EF4444'}">
+              ${first.name ? first.name.charAt(0) : '1'}
+            </div>
+            <div class="podium-name" style="font-weight: 900; font-size: 13.5px; color: #FEF08A;">${first.isTeacher ? '👩‍🏫 ' : ''}${first.name}</div>
+            <div class="podium-score" style="font-size: 13px;">${first.score} ұпай</div>
+            <div class="podium-pillar p1">
+              <span class="pillar-rank">🥇 1-ОРЫН</span>
+            </div>
+          </div>
+
+          <!-- 3rd Place: Bronze -->
+          <div class="podium-step step-3">
+            <div class="podium-avatar" style="background: ${third.color || '#06B6D4'}">
+              ${third.name ? third.name.charAt(0) : '3'}
+            </div>
+            <div class="podium-name">${third.isTeacher ? '👩‍🏫 ' : ''}${third.name}</div>
+            <div class="podium-score">${third.score} ұпай</div>
+            <div class="podium-pillar p3">
+              <span class="pillar-rank">🥉 3-ОРЫН</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="podium-full-list">
+          <h4>ҚАЛҒАН ҚАТЫСУШЫЛАР РЕЙТИНГІ:</h4>
+          <div class="podium-table">
+            ${others.map((st, i) => `
+              <div class="podium-row">
+                <span><strong>#${i + 4}</strong> ${st.isTeacher ? '👩‍🏫 ' : ''}${st.name}</span>
+                <span style="color: var(--gold-glow); font-weight: 700;">${st.score} ұпай</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    if (this.modalPodium) {
+      this.modalPodium.classList.add('active');
+    }
+  }
+
+  // ==========================================
+  // QUESTIONS BANK (90 СҰРАҚТАР ҚОРЫ)
+  // ==========================================
+  openQBankModal(filterTopicId = 'all') {
+    sounds.playClick();
+    if (this.qbankFilter) {
+      this.qbankFilter.value = filterTopicId;
+    }
+    this.renderQBank(filterTopicId);
+    if (this.modalQBank) {
+      this.modalQBank.classList.add('active');
+    }
+  }
+
+  renderQBank(topicFilter = 'all') {
+    if (!this.qbankList) return;
+    
+    let list = QUESTIONS;
+    if (topicFilter !== 'all') {
+      const tid = parseInt(topicFilter, 10);
+      list = QUESTIONS.filter(q => q.topicId === tid);
+    }
+
+    const letters = ['A', 'B', 'C', 'D'];
+
+    this.qbankList.innerHTML = list.map((q, idx) => {
+      const topic = TOPICS.find(t => t.id === q.topicId) || { title: 'Сұрақ', color: '#3B82F6' };
+      const isUsed = this.usedQuestionIds.has(q.id);
+
+      return `
+        <div class="qbank-item" style="border-left: 3px solid ${topic.color};">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span class="qbank-badge" style="background: ${topic.color}">№${idx + 1} • ${topic.title}</span>
+              ${isUsed ? '<span style="font-size: 10px; color: #94A3B8; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;">Ойналды ✓</span>' : ''}
+            </div>
+            <span style="font-size: 11px; font-weight: 800; color: var(--gold-glow);">+${q.points || 20} ұпай</span>
+          </div>
+
+          <div class="qbank-qtext"><strong>${q.question}</strong></div>
+
+          <div class="qbank-options-preview">
+            ${q.options.map((opt, oIdx) => `
+              <div class="qbank-opt ${oIdx === q.correct ? 'correct' : ''}">
+                <strong>${letters[oIdx]})</strong> ${opt} ${oIdx === q.correct ? ' ✓' : ''}
+              </div>
+            `).join('')}
+          </div>
+
+          ${q.explanation ? `
+            <div style="font-size: 11px; color: var(--cyan-primary); background: rgba(6,182,212,0.08); padding: 5px 8px; border-radius: 4px; margin-top: 4px;">
+              📖 <em>${q.explanation}</em>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ==========================================
+  // AUDIO MUTE TOGGLE (ДЫБЫС)
+  // ==========================================
+  toggleAudioMute() {
+    const isMuted = sounds.toggleMute();
+    if (!isMuted) {
+      sounds.playClick();
+    }
+    const icon = document.getElementById('mute-icon');
+    if (icon) {
+      icon.textContent = isMuted ? '🔇' : '🔊';
+    }
+    this.showToast(isMuted ? '🔇 Дыбыс өшірілді' : '🔊 Дыбыс қосылды', 'info');
+  }
+
+  // ==========================================
+  // FULLSCREEN TOGGLE (ТОЛЫҚ ЭКРАН)
+  // ==========================================
+  toggleFullscreen() {
+    sounds.playClick();
+    const icon = document.getElementById('fullscreen-icon');
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        if (icon) icon.textContent = '🗗';
+        this.showToast('⛶ Толық экран режимі', 'info');
+      }).catch(err => {
+        console.warn('Fullscreen request failed:', err);
+      });
+    } else {
+      document.exitFullscreen().then(() => {
+        if (icon) icon.textContent = '⛶';
+        this.showToast('Толық экран режимінен шықтыңыз', 'info');
+      }).catch(() => {});
+    }
+  }
+
+  // ==========================================
+  // RESTART / RESET GAME (ОЙЫНДЫ ҚАЙТА БАСТАУ)
+  // ==========================================
+  resetGame() {
+    sounds.playClick();
+    const confirmed = confirm('Барлық қатысушылардың ұпайын нөлдеп, ұяшықтар мен сұрақтарды қайта бастағыңыз келе ме?');
+    if (!confirmed) return;
+
+    this.students.forEach(st => {
+      st.score = 0;
+      st.answeredCount = 0;
+    });
+
+    this.usedQuestionIds.clear();
+    this.cellsManager.reset();
+    this.selectedStudent = null;
+    this.selectedTopic = null;
+    this.buzzerLocked = false;
+    this.buzzerWinner = null;
+
+    try {
+      localStorage.removeItem('kazakh_quiz_used_q_v2');
+      localStorage.removeItem('kazakh_quiz_cells_v2');
+      this.saveState();
+    } catch (e) {}
+
+    sounds.playTimerWarning();
+    this.renderMysteryCells();
+    this.renderScoreboard();
+    this.updateStats();
+    this.updateWheelItems();
+    this.updateTurnControls();
+
+    if (this.activeStudentName) this.activeStudentName.textContent = 'Студент таңдалмады';
+    if (this.activeTopicTitle) this.activeTopicTitle.textContent = 'Ұяшықты ашыңыз немесе төменнен таңдаңыз';
+    if (this.activeTopicBadge) {
+      this.activeTopicBadge.textContent = 'Тақырып таңдалмады';
+      this.activeTopicBadge.style.backgroundColor = '';
+    }
+
+    realtime.emit('BUZZER_RESET', {});
+    this.showToast('🔄 Викторина толық жаңартылды! Ұпайлар нөлденді.', 'success');
+  }
+
+  // ==========================================
   // RENDERING & HELPERS
   // ==========================================
   renderAuthors() {
@@ -1214,21 +1440,24 @@ class QuizApp {
       };
     }
 
-    // Mute & Fullscreen
-    if (this.btnMute) {
-      this.btnMute.onclick = () => {
-        const isMuted = sounds.toggleMute();
-        this.btnMute.textContent = isMuted ? '🔇' : '🔊';
+    // Utility Header Controls: Podium, QBank, Mute, Fullscreen, Reset
+    if (this.btnPodium) this.btnPodium.onclick = () => this.openPodiumModal();
+    if (this.btnQBank) this.btnQBank.onclick = () => this.openQBankModal();
+    if (this.btnMute) this.btnMute.onclick = () => this.toggleAudioMute();
+    if (this.btnFullscreen) this.btnFullscreen.onclick = () => this.toggleFullscreen();
+    if (this.btnReset) this.btnReset.onclick = () => this.resetGame();
+
+    if (this.qbankFilter) {
+      this.qbankFilter.onchange = (e) => this.renderQBank(e.target.value);
+    }
+    if (this.btnClosePodium) {
+      this.btnClosePodium.onclick = () => {
+        if (this.modalPodium) this.modalPodium.classList.remove('active');
       };
     }
-
-    if (this.btnFullscreen) {
-      this.btnFullscreen.onclick = () => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        } else {
-          document.exitFullscreen().catch(() => {});
-        }
+    if (this.btnCloseQBank) {
+      this.btnCloseQBank.onclick = () => {
+        if (this.modalQBank) this.modalQBank.classList.remove('active');
       };
     }
 
@@ -1534,12 +1763,50 @@ document.addEventListener('click', (e) => {
     return;
   }
 
+  const btnPodium = e.target.closest('#btn-podium');
+  if (btnPodium) {
+    if (window.app) window.app.openPodiumModal();
+    return;
+  }
+
+  const btnQBank = e.target.closest('#btn-qbank');
+  if (btnQBank) {
+    if (window.app) window.app.openQBankModal();
+    return;
+  }
+
+  const btnMute = e.target.closest('#btn-mute');
+  if (btnMute) {
+    if (window.app) window.app.toggleAudioMute();
+    return;
+  }
+
+  const btnFs = e.target.closest('#btn-fullscreen');
+  if (btnFs) {
+    if (window.app) window.app.toggleFullscreen();
+    return;
+  }
+
+  const btnReset = e.target.closest('#btn-reset');
+  if (btnReset) {
+    if (window.app) window.app.resetGame();
+    return;
+  }
+
   const submitPin = e.target.closest('#btn-submit-pin');
   if (submitPin) {
     if (window.app) {
       window.app.submitAdminPin();
     }
     return;
+  }
+});
+
+// Sync fullscreen icon whenever fullscreen state changes (e.g. F11 or Esc)
+document.addEventListener('fullscreenchange', () => {
+  const icon = document.getElementById('fullscreen-icon');
+  if (icon) {
+    icon.textContent = document.fullscreenElement ? '🗗' : '⛶';
   }
 });
 
