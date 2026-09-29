@@ -28,10 +28,10 @@
       </div>
 
       <div class="role-right-tools">
-        <button id="btn-share-link" class="btn-share-link" title="Студенттерге сілтеме көшіру">
+        <button id="btn-share-link" class="btn-share-link" title="Студенттерге сілтеме көшіру" onclick="window.app ? window.app.handleShareLinkClick() : null">
           <span>🔗 Топқа сілтеме көшіру</span>
         </button>
-        <button id="btn-admin-access" class="btn-admin-access" title="Админ кіру">
+        <button id="btn-admin-access" class="btn-admin-access" title="Админ кіру" onclick="window.app ? window.app.handleAdminAccessClick() : (document.getElementById('modal-pin') && document.getElementById('modal-pin').classList.add('active'))">
           <span id="admin-lock-icon">🔒</span>
           <span id="admin-access-label">Админ кіру</span>
         </button>
@@ -452,7 +452,7 @@
   <!-- ============================================================
        MODAL 6: 🔒 ADMIN PIN CODE AUTHORIZATION (165165)
        ============================================================ -->
-  <div id="modal-pin" class="modal-overlay">
+  <div id="modal-pin" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('active')">
     <div class="modal-window pin-modal-content glass-popup">
       <div class="pin-modal-header">
         <span class="pin-icon">🔐</span>
@@ -462,7 +462,7 @@
 
       <div class="pin-form-body">
         <input type="password" id="admin-pin-input" class="pin-secret-input" maxlength="6" placeholder="******" autocomplete="off" inputmode="numeric">
-        <button id="btn-submit-pin" class="btn-primary-action">
+        <button id="btn-submit-pin" class="btn-primary-action" onclick="window.app ? window.app.submitAdminPin() : null">
           <span>Кіру ➔</span>
         </button>
       </div>
@@ -471,7 +471,7 @@
         ❌ Қате PIN-код! Қайта көріңіз.
       </div>
 
-      <button id="btn-close-pin" class="modal-close-btn" title="Жабу">&times;</button>
+      <button id="btn-close-pin" class="modal-close-btn" title="Жабу" onclick="document.getElementById('modal-pin').classList.remove('active')">&times;</button>
     </div>
   </div>
 

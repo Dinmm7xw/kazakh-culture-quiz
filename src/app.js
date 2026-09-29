@@ -9,42 +9,91 @@ import { realtime } from './realtime.js';
 
 const ADMIN_PIN = "165165";
 
+// Safe clipboard copy utility with legacy fallback
+export function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise((resolve, reject) => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const success = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (success) resolve();
+      else reject(new Error('copy command failed'));
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+// Storage protection against SecurityErrors in incognito/embedded frames
+function safeGetSession(key) {
+  try { return sessionStorage.getItem(key); } catch (e) { return null; }
+}
+function safeSetSession(key, val) {
+  try { sessionStorage.setItem(key, val); } catch (e) {}
+}
+function safeRemoveSession(key) {
+  try { sessionStorage.removeItem(key); } catch (e) {}
+}
+function safeGetLocal(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function safeSetLocal(key, val) {
+  try { localStorage.setItem(key, val); } catch (e) {}
+}
+function safeRemoveLocal(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+}
+
 class QuizApp {
   constructor() {
-    this.confetti = new ConfettiEngine();
-    this.cellsManager = new CellsManager();
-    this.loadState();
+    try {
+      this.confetti = new ConfettiEngine();
+      this.cellsManager = new CellsManager();
+      this.loadState();
 
-    this.isAdminAuthenticated = sessionStorage.getItem('kazakh_quiz_admin_authed') === 'true';
-    this.currentRole = this.isAdminAuthenticated ? 'admin' : 'player';
-    this.myStudent = null; // for player mode
+      this.isAdminAuthenticated = safeGetSession('kazakh_quiz_admin_authed') === 'true';
+      this.currentRole = this.isAdminAuthenticated ? 'admin' : 'player';
+      this.myStudent = null; // for player mode
 
-    this.selectedStudent = null;
-    this.selectedTopic = null;
-    this.currentQuestion = null;
-    this.currentMultiplier = 1;
+      this.selectedStudent = null;
+      this.selectedTopic = null;
+      this.currentQuestion = null;
+      this.currentMultiplier = 1;
 
-    this.timerInterval = null;
-    this.timeLeft = 30;
-    this.timerTotal = 30;
+      this.timerInterval = null;
+      this.timeLeft = 30;
+      this.timerTotal = 30;
 
-    this.wheelMode = 'students';
-    this.gameTabMode = 'cells'; // 'cells' or 'wheel'
+      this.wheelMode = 'students';
+      this.gameTabMode = 'cells'; // 'cells' or 'wheel'
 
-    this.buzzerLocked = false;
-    this.buzzerWinner = null;
+      this.buzzerLocked = false;
+      this.buzzerWinner = null;
 
-    this.initElements();
-    this.renderAuthors();
-    this.renderMysteryCells();
-    this.renderScoreboard();
-    this.renderTopicsGrid();
-    this.renderPlayerPicker();
-    this.initRealtimeListeners();
-    this.initWheel();
-    this.bindEvents();
-    this.updateStats();
-    this.checkUrlRole();
+      this.initElements();
+      this.renderAuthors();
+      this.renderMysteryCells();
+      this.renderScoreboard();
+      this.renderTopicsGrid();
+      this.renderPlayerPicker();
+      this.initRealtimeListeners();
+      this.initWheel();
+      this.bindEvents();
+      this.updateStats();
+      this.checkUrlRole();
+    } catch (err) {
+      console.error('QuizApp constructor error:', err);
+    }
   }
 
   loadState() {
@@ -813,7 +862,7 @@ class QuizApp {
           <span class="topic-progress-badge">${used}/${topicQuestions.length}</span>
         </div>
         <h4 class="topic-card-title">${topic.shortTitle}</h4>
-        <p class="topic-card-desc">${topic.description}</p>
+        <p class="topic-card-desc">${topic.description || (topic.subtopics && topic.subtopics[0]) || topic.title}</p>
       `;
 
       card.addEventListener('click', () => {
@@ -835,8 +884,8 @@ class QuizApp {
 
   openPinModal() {
     if (this.modalPin) {
-      this.adminPinInput.value = '';
-      this.pinErrorMsg.classList.add('hidden');
+      if (this.adminPinInput) this.adminPinInput.value = '';
+      if (this.pinErrorMsg) this.pinErrorMsg.classList.add('hidden');
       this.modalPin.classList.add('active');
       setTimeout(() => {
         if (this.adminPinInput) this.adminPinInput.focus();
@@ -848,14 +897,14 @@ class QuizApp {
     const val = (this.adminPinInput ? this.adminPinInput.value : '').trim();
     if (val === ADMIN_PIN) {
       this.isAdminAuthenticated = true;
-      sessionStorage.setItem('kazakh_quiz_admin_authed', 'true');
-      this.modalPin.classList.remove('active');
+      safeSetSession('kazakh_quiz_admin_authed', 'true');
+      if (this.modalPin) this.modalPin.classList.remove('active');
       this.setRole('admin');
       sounds.playWin();
       this.showToast('✅ Қош келдіңіз, Админ! Басқару панелі ашылды.', 'success');
     } else {
       sounds.playWrong();
-      this.pinErrorMsg.classList.remove('hidden');
+      if (this.pinErrorMsg) this.pinErrorMsg.classList.remove('hidden');
       if (this.adminPinInput) {
         this.adminPinInput.value = '';
         this.adminPinInput.focus();
@@ -863,26 +912,40 @@ class QuizApp {
     }
   }
 
-  bindEvents() {
-    // Admin PIN Protection logic
-    if (this.btnAdminAccess) {
-      this.btnAdminAccess.onclick = () => {
-        sounds.playClick();
-        if (this.isAdminAuthenticated) {
-          if (this.currentRole === 'admin') {
-            if (confirm('Админ режимінен шығып, құлыптағыңыз келе ме?')) {
-              this.isAdminAuthenticated = false;
-              sessionStorage.removeItem('kazakh_quiz_admin_authed');
-              this.setRole('player');
-              this.showToast('Админ панелі құлыпталды', 'info');
-            }
-          } else {
-            this.setRole('admin');
-          }
-        } else {
-          this.openPinModal();
+  handleAdminAccessClick() {
+    sounds.playClick();
+    if (this.isAdminAuthenticated) {
+      if (this.currentRole === 'admin') {
+        if (confirm('Админ режимінен шығып, құлыптағыңыз келе ме?')) {
+          this.isAdminAuthenticated = false;
+          safeRemoveSession('kazakh_quiz_admin_authed');
+          this.setRole('player');
+          this.showToast('Админ панелі құлыпталды', 'info');
         }
-      };
+      } else {
+        this.setRole('admin');
+      }
+    } else {
+      this.openPinModal();
+    }
+  }
+
+  handleShareLinkClick() {
+    sounds.playClick();
+    const url = new URL(window.location.href);
+    url.searchParams.set('role', 'player');
+    const shareUrl = url.toString();
+    copyToClipboard(shareUrl).then(() => {
+      this.showToast('📋 Студенттерге арналған сілтеме көшірілді! Группаға жібере аласыз.', 'success');
+    }).catch(() => {
+      this.showToast(`Сілтеме: ${shareUrl}`, 'info');
+    });
+  }
+
+  bindEvents() {
+    // Admin PIN Protection
+    if (this.btnAdminAccess) {
+      this.btnAdminAccess.onclick = () => this.handleAdminAccessClick();
     }
 
     if (this.btnSubmitPin) {
@@ -899,152 +962,197 @@ class QuizApp {
 
     if (this.btnClosePin) {
       this.btnClosePin.onclick = () => {
-        this.modalPin.classList.remove('active');
+        if (this.modalPin) this.modalPin.classList.remove('active');
+      };
+    }
+
+    if (this.modalPin) {
+      this.modalPin.onclick = (e) => {
+        if (e.target === this.modalPin) {
+          this.modalPin.classList.remove('active');
+        }
       };
     }
 
     // Share link to group
-    this.btnShareLink.onclick = () => {
-      const url = new URL(window.location.href);
-      url.searchParams.set('role', 'player');
-      navigator.clipboard.writeText(url.toString()).then(() => {
-        this.showToast('📋 Студенттерге арналған сілтеме көшірілді! Группаға жібере аласыз.', 'success');
-      }).catch(() => {
-        this.showToast(`Сілтеме: ${url.toString()}`, 'info');
-      });
-    };
+    if (this.btnShareLink) {
+      this.btnShareLink.onclick = () => this.handleShareLinkClick();
+    }
 
     // Reset Buzzer button
-    this.btnResetBuzzer.onclick = () => {
-      sounds.playClick();
-      realtime.emit('BUZZER_RESET', {});
-      this.showToast('Буззер жаңа раундқа ашылды!', 'info');
-    };
+    if (this.btnResetBuzzer) {
+      this.btnResetBuzzer.onclick = () => {
+        sounds.playClick();
+        realtime.emit('BUZZER_RESET', {});
+        this.showToast('Буззер жаңа раундқа ашылды!', 'info');
+      };
+    }
 
     // Mobile Buzzer Button
-    this.btnMobileBuzzer.onclick = () => {
-      this.triggerBuzzerPress();
-    };
+    if (this.btnMobileBuzzer) {
+      this.btnMobileBuzzer.onclick = () => {
+        this.triggerBuzzerPress();
+      };
+    }
 
     // Change student profile on mobile
-    this.btnChangeStudent.onclick = () => {
-      this.myStudent = null;
-      try { localStorage.removeItem('kazakh_quiz_my_id'); } catch(e) {}
-      this.updatePlayerScreenState();
-    };
+    if (this.btnChangeStudent) {
+      this.btnChangeStudent.onclick = () => {
+        this.myStudent = null;
+        safeRemoveLocal('kazakh_quiz_my_id');
+        this.updatePlayerScreenState();
+      };
+    }
 
     // Tabs: Cells vs Wheel
-    this.tabGameCells.onclick = () => {
-      sounds.playClick();
-      this.gameTabMode = 'cells';
-      this.tabGameCells.classList.add('active');
-      this.tabGameWheel.classList.remove('active');
-      this.containerCellsView.classList.remove('hidden');
-      this.containerWheelView.classList.add('hidden');
-    };
+    if (this.tabGameCells) {
+      this.tabGameCells.onclick = () => {
+        sounds.playClick();
+        this.gameTabMode = 'cells';
+        if (this.tabGameCells) this.tabGameCells.classList.add('active');
+        if (this.tabGameWheel) this.tabGameWheel.classList.remove('active');
+        if (this.containerCellsView) this.containerCellsView.classList.remove('hidden');
+        if (this.containerWheelView) this.containerWheelView.classList.add('hidden');
+      };
+    }
 
-    this.tabGameWheel.onclick = () => {
-      sounds.playClick();
-      this.gameTabMode = 'wheel';
-      this.tabGameWheel.classList.add('active');
-      this.tabGameCells.classList.remove('active');
-      this.containerWheelView.classList.remove('hidden');
-      this.containerCellsView.classList.add('hidden');
-      this.wheel.initCanvasSize();
-      this.wheel.draw();
-    };
+    if (this.tabGameWheel) {
+      this.tabGameWheel.onclick = () => {
+        sounds.playClick();
+        this.gameTabMode = 'wheel';
+        if (this.tabGameWheel) this.tabGameWheel.classList.add('active');
+        if (this.tabGameCells) this.tabGameCells.classList.remove('active');
+        if (this.containerWheelView) this.containerWheelView.classList.remove('hidden');
+        if (this.containerCellsView) this.containerCellsView.classList.add('hidden');
+        if (this.wheel) {
+          this.wheel.initCanvasSize();
+          this.wheel.draw();
+        }
+      };
+    }
 
-    this.btnShuffleCells.onclick = () => {
-      sounds.playClick();
-      this.cellsManager.reset();
-      this.renderMysteryCells();
-      this.showToast('Ұяшықтар жаңадан араластырылды!', 'info');
-    };
+    if (this.btnShuffleCells) {
+      this.btnShuffleCells.onclick = () => {
+        sounds.playClick();
+        this.cellsManager.reset();
+        this.renderMysteryCells();
+        this.showToast('Ұяшықтар жаңадан араластырылды!', 'info');
+      };
+    }
 
     // Wheel Spin
-    this.btnSpin.onclick = () => this.wheel.spin();
+    if (this.btnSpin) {
+      this.btnSpin.onclick = () => {
+        if (this.wheel) this.wheel.spin();
+      };
+    }
+
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !this.modalQuestion.classList.contains('active') && this.currentRole === 'admin') {
+      if (e.code === 'Space' && this.modalQuestion && !this.modalQuestion.classList.contains('active') && this.currentRole === 'admin') {
         e.preventDefault();
-        this.wheel.spin();
+        if (this.wheel) this.wheel.spin();
       }
     });
 
-    this.modeStudentsTab.onclick = () => {
-      sounds.playClick();
-      this.wheelMode = 'students';
-      this.modeStudentsTab.classList.add('active');
-      this.modeTopicsTab.classList.remove('active');
-      this.updateWheelItems();
-    };
+    if (this.modeStudentsTab) {
+      this.modeStudentsTab.onclick = () => {
+        sounds.playClick();
+        this.wheelMode = 'students';
+        if (this.modeStudentsTab) this.modeStudentsTab.classList.add('active');
+        if (this.modeTopicsTab) this.modeTopicsTab.classList.remove('active');
+        this.updateWheelItems();
+      };
+    }
 
-    this.modeTopicsTab.onclick = () => {
-      sounds.playClick();
-      this.wheelMode = 'topics';
-      this.modeTopicsTab.classList.add('active');
-      this.modeStudentsTab.classList.remove('active');
-      this.updateWheelItems();
-    };
+    if (this.modeTopicsTab) {
+      this.modeTopicsTab.onclick = () => {
+        sounds.playClick();
+        this.wheelMode = 'topics';
+        if (this.modeTopicsTab) this.modeTopicsTab.classList.add('active');
+        if (this.modeStudentsTab) this.modeStudentsTab.classList.remove('active');
+        this.updateWheelItems();
+      };
+    }
 
     // Turn Actions
-    this.btnStartQuestion.onclick = () => this.startQuestionFlow();
-    this.btnRandomTopic.onclick = () => {
-      sounds.playClick();
-      const randomTopic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
-      this.selectTopic(randomTopic);
-      this.renderTopicsGrid();
-    };
+    if (this.btnStartQuestion) {
+      this.btnStartQuestion.onclick = () => this.startQuestionFlow();
+    }
+    if (this.btnRandomTopic) {
+      this.btnRandomTopic.onclick = () => {
+        sounds.playClick();
+        const randomTopic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+        this.selectTopic(randomTopic);
+        this.renderTopicsGrid();
+      };
+    }
 
     // Question modal controls
-    this.btnRevealAnswer.onclick = () => this.revealAnswer();
-    this.btnCorrect.onclick = () => this.markAnswer(true);
-    this.btnWrong.onclick = () => this.markAnswer(false);
-    this.btnPass.onclick = () => this.closeQuestionModal();
-    this.btnCloseQModal.onclick = () => this.closeQuestionModal();
+    if (this.btnRevealAnswer) this.btnRevealAnswer.onclick = () => this.revealAnswer();
+    if (this.btnCorrect) this.btnCorrect.onclick = () => this.markAnswer(true);
+    if (this.btnWrong) this.btnWrong.onclick = () => this.markAnswer(false);
+    if (this.btnPass) this.btnPass.onclick = () => this.closeQuestionModal();
+    if (this.btnCloseQModal) this.btnCloseQModal.onclick = () => this.closeQuestionModal();
 
     // Gift modal controls
-    this.btnCopyPromo.onclick = () => {
-      navigator.clipboard.writeText(PROMO_CODE_INFO.code).then(() => {
-        this.showToast('📋 «HACKALEMAI» промокоды көшірілді!', 'success');
-      });
-    };
-    this.btnCloseGift.onclick = () => this.modalGift.classList.remove('active');
+    if (this.btnCopyPromo) {
+      this.btnCopyPromo.onclick = () => {
+        copyToClipboard(PROMO_CODE_INFO.code).then(() => {
+          this.showToast('📋 «HACKALEMAI» промокоды көшірілді!', 'success');
+        });
+      };
+    }
+    if (this.btnCloseGift) {
+      this.btnCloseGift.onclick = () => {
+        if (this.modalGift) this.modalGift.classList.remove('active');
+      };
+    }
 
     // Bomb modal controls
-    this.btnCloseBomb.onclick = () => this.modalBomb.classList.remove('active');
+    if (this.btnCloseBomb) {
+      this.btnCloseBomb.onclick = () => {
+        if (this.modalBomb) this.modalBomb.classList.remove('active');
+      };
+    }
 
     // Mute & Fullscreen
-    this.btnMute.onclick = () => {
-      const isMuted = sounds.toggleMute();
-      this.btnMute.textContent = isMuted ? '🔇' : '🔊';
-    };
+    if (this.btnMute) {
+      this.btnMute.onclick = () => {
+        const isMuted = sounds.toggleMute();
+        this.btnMute.textContent = isMuted ? '🔇' : '🔊';
+      };
+    }
 
-    this.btnFullscreen.onclick = () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
-    };
+    if (this.btnFullscreen) {
+      this.btnFullscreen.onclick = () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      };
+    }
 
     // Reset All
-    this.btnReset.onclick = () => {
-      if (confirm('Ойынды толықтай қайта бастағыңыз келе ме? Ұпайлар 0 болады.')) {
-        this.students = JSON.parse(JSON.stringify(STUDENTS));
-        this.usedQuestionIds = new Set();
-        this.cellsManager.reset();
-        this.saveState();
-        this.renderScoreboard();
-        this.renderMysteryCells();
-        this.renderTopicsGrid();
-        this.updateStats();
-        this.showToast('Ойын жаңадан басталды!', 'success');
-      }
-    };
+    if (this.btnReset) {
+      this.btnReset.onclick = () => {
+        if (confirm('Ойынды толықтай қайта бастағыңыз келе ме? Ұпайлар 0 болады.')) {
+          this.students = JSON.parse(JSON.stringify(STUDENTS));
+          this.usedQuestionIds = new Set();
+          this.cellsManager.reset();
+          this.saveState();
+          this.renderScoreboard();
+          this.renderMysteryCells();
+          this.renderTopicsGrid();
+          this.updateStats();
+          this.showToast('Ойын жаңадан басталды!', 'success');
+        }
+      };
+    }
 
     // Podium & QBank Modals
-    this.btnPodium.onclick = () => this.openPodiumModal();
-    this.btnQuestionBank.onclick = () => this.openQBankModal();
+    if (this.btnPodium) this.btnPodium.onclick = () => this.openPodiumModal();
+    if (this.btnQuestionBank) this.btnQuestionBank.onclick = () => this.openQBankModal();
 
     if (this.studentSearch) {
       this.studentSearch.addEventListener('input', () => this.renderScoreboard());
@@ -1159,6 +1267,69 @@ class QuizApp {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  window.app = new QuizApp();
+// Global delegated click listeners ensuring critical controls always respond instantly
+document.addEventListener('click', (e) => {
+  const adminBtn = e.target.closest('#btn-admin-access');
+  if (adminBtn) {
+    if (window.app) {
+      window.app.handleAdminAccessClick();
+    } else {
+      const modal = document.getElementById('modal-pin');
+      if (modal) {
+        modal.classList.add('active');
+        const input = document.getElementById('admin-pin-input');
+        if (input) input.focus();
+      }
+    }
+    return;
+  }
+
+  const shareBtn = e.target.closest('#btn-share-link');
+  if (shareBtn) {
+    if (window.app) {
+      window.app.handleShareLinkClick();
+    } else {
+      const url = new URL(window.location.href);
+      url.searchParams.set('role', 'player');
+      copyToClipboard(url.toString()).then(() => {
+        alert('📋 Студенттерге арналған сілтеме көшірілді!');
+      });
+    }
+    return;
+  }
+
+  const closePin = e.target.closest('#btn-close-pin');
+  if (closePin) {
+    const modal = document.getElementById('modal-pin');
+    if (modal) modal.classList.remove('active');
+    return;
+  }
+
+  const submitPin = e.target.closest('#btn-submit-pin');
+  if (submitPin) {
+    if (window.app) {
+      window.app.submitAdminPin();
+    }
+    return;
+  }
 });
+
+// Resilient App Bootstrapper
+export function initQuizApp() {
+  if (window.app) return window.app;
+  try {
+    window.app = new QuizApp();
+    return window.app;
+  } catch (err) {
+    console.error('QuizApp init error:', err);
+    return null;
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initQuizApp);
+} else {
+  // DOM is already parsed! Initialize immediately!
+  initQuizApp();
+}
+

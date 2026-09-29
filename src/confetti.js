@@ -9,8 +9,15 @@ export class ConfettiEngine {
     this.canvas.style.width = '100vw';
     this.canvas.style.height = '100vh';
     this.canvas.style.pointerEvents = 'none';
-    this.canvas.style.zIndex = '99999';
-    document.body.appendChild(this.canvas);
+    if (document.body) {
+      document.body.appendChild(this.canvas);
+    } else {
+      window.addEventListener('DOMContentLoaded', () => {
+        if (document.body && !document.getElementById('confetti-canvas')) {
+          document.body.appendChild(this.canvas);
+        }
+      });
+    }
 
     this.ctx = this.canvas.getContext('2d');
     this.particles = [];
