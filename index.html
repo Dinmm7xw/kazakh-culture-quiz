@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Бақыт Дөңгелегі & Ұяшықтар Викторинасы (16 Студент)</title>
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body class="dark-theme">
+  <!-- Kazakh Geometric Background Pattern Accent -->
+  <div class="bg-ornament-layer"></div>
+  <div class="bg-glow-orb orb-1"></div>
+  <div class="bg-glow-orb orb-2"></div>
+  <div class="bg-glow-orb orb-3"></div>
+
+  <!-- ROLE SWITCHER BAR (Админ экраны мен Студент пультын ауыстыру) -->
+  <nav class="role-nav-bar">
+    <div class="role-nav-inner">
+      <div class="role-switch-tabs">
+        <button id="btn-role-admin" class="role-tab-btn active">
+          <span>🖥️ Үлкен Экран / Админ</span>
+        </button>
+        <button id="btn-role-player" class="role-tab-btn">
+          <span>📱 Студент Пульты (Телефон)</span>
+        </button>
+      </div>
+
+      <div class="role-right-tools">
+        <button id="btn-share-link" class="btn-share-link" title="Студенттерге сілтеме көшіру">
+          <span>🔗 Топқа сілтеме көшіру</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       VIEW A: ADMIN / PROJECTOR VIEW (ҮЛКЕН ЭКРАН)
+       ============================================================ -->
+  <div id="view-admin" class="app-container">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="header-branding">
+        <div class="emblem-logo">
+          <span class="emblem-symbol">☀️</span>
+        </div>
+        <div class="header-titles">
+          <div class="super-title">ТАРИХИ-ТАҒЫЛЫМДЫҚ ИНТЕЛЛЕКТУАЛДЫ ОЙЫН</div>
+          <h1 class="main-title">БАҚЫТ ДӨҢГЕЛЕГІ & ҰЯШЫҚТАР <span>• ҚАЗАҚ МӘДЕНИЕТІ</span></h1>
+        </div>
+      </div>
+
+      <!-- Authors VIP Showcase -->
+      <div class="authors-badge-panel">
+        <div class="authors-header-tag">
+          <span class="shield-icon">🛡️</span>
+          <span>Ұйымдастырушы авторлар тобы:</span>
+        </div>
+        <div id="authors-container" class="authors-list">
+          <!-- Dynamically populated from students.js -->
+        </div>
+      </div>
+
+      <!-- Utility Controls -->
+      <div class="header-actions">
+        <button id="btn-podium" class="btn-action-icon" title="Жеңімпаздар тұғыры">
+          <span>🏆</span>
+          <span class="btn-text">Тұғыр</span>
+        </button>
+        <button id="btn-qbank" class="btn-action-icon" title="Сұрақтар қоры">
+          <span>📚</span>
+          <span class="btn-text">Сұрақтар (90)</span>
+        </button>
+        <button id="btn-mute" class="btn-action-icon" title="Дыбысты қосу/өшіру">
+          🔊
+        </button>
+        <button id="btn-fullscreen" class="btn-action-icon" title="Толық экран режимі">
+          ⛶
+        </button>
+        <button id="btn-reset" class="btn-action-icon btn-danger" title="Ойынды қайта бастау">
+          🔄
+        </button>
+      </div>
+    </header>
+
+    <!-- BUZZER LIVE MONITOR (Кім бірінші басты?) -->
+    <section class="buzzer-monitor-bar glass-card">
+      <div class="buzzer-status-left">
+        <span class="buzzer-pulse-indicator"></span>
+        <div class="buzzer-status-text">
+          <span class="buzzer-title">БУЗЗЕР ЖҮЙЕСІ (НАҚТЫ УАҚЫТ):</span>
+          <span id="buzzer-winner-text" class="buzzer-winner-name">Студенттердің батырма басуын күтуде...</span>
+        </div>
+      </div>
+      <div class="buzzer-controls-right">
+        <button id="btn-reset-buzzer" class="btn-buzzer-reset">
+          <span>🔄 Жаңа раундқа буззерді ашу</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Workspace Layout: 3 Columns -->
+    <main class="main-grid">
+      <!-- COLUMN 1: Fortune Wheel & Mystery Cells Tabs -->
+      <section class="wheel-panel glass-card">
+        <div class="panel-header">
+          <div class="mode-tabs">
+            <button id="tab-game-cells" class="tab-btn active">
+              <span>🧩 1. Құпия Ұяшықтар (24)</span>
+            </button>
+            <button id="tab-game-wheel" class="tab-btn">
+              <span>🎡 2. Бақыт Дөңгелегі</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SUB-VIEW 1: MYSTERY CELLS (Ұяшықтар жүйесі) -->
+        <div id="container-cells-view" class="cells-view-wrapper">
+          <div class="cells-view-header">
+            <span class="cells-info-tag">Таңдап басыңыз: ❓ Сұрақ • 💣 Бомба (-1) • 🎁 Сыйлық</span>
+            <button id="btn-shuffle-cells" class="btn-micro" title="Ұяшықтарды қайта араластыру">Жаңарту 🔀</button>
+          </div>
+          <div id="mystery-cells-grid" class="mystery-cells-grid">
+            <!-- 24 Mystery Cells populated by cells.js -->
+          </div>
+        </div>
+
+        <!-- SUB-VIEW 2: WHEEL OF FORTUNE (Бақыт Дөңгелегі) -->
+        <div id="container-wheel-view" class="wheel-view-wrapper hidden">
+          <div class="wheel-sub-tabs">
+            <button id="tab-mode-students" class="wheel-sub-tab active">16 Студенттер</button>
+            <button id="tab-mode-topics" class="wheel-sub-tab">5 Тақырыптар</button>
+          </div>
+          <div class="wheel-wrapper">
+            <div class="wheel-outer-glow"></div>
+            <canvas id="wheel-canvas" width="440" height="440"></canvas>
+          </div>
+          <button id="btn-spin" class="btn-spin-action">
+            <span class="spin-icon">⚡</span>
+            <span class="spin-label">ДӨҢГЕЛЕКТІ АЙНАЛДЫРУ</span>
+            <span class="spin-shortcut">[Space]</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: Game Turn Arena (Ойын барысы & 5 Тақырып) -->
+      <section class="turn-arena glass-card">
+        <div class="arena-header">
+          <h2 class="section-title">ОЙЫН АЛАҢЫ</h2>
+          <div class="arena-stats-chip">
+            <span>Ойналған: <strong id="stats-used-q">0</strong></span>
+            <span class="divider">/</span>
+            <span>Қалғаны: <strong id="stats-remaining-q">90</strong> сұрақ</span>
+          </div>
+        </div>
+
+        <!-- Turn Selection Dashboard -->
+        <div class="turn-status-grid">
+          <!-- Active Student Card -->
+          <div id="active-student-card" class="turn-card empty-state">
+            <div class="turn-card-sub">КЕЗЕКТІ ЖАУАП БЕРУШІ:</div>
+            <div class="card-identity">
+              <div id="active-student-avatar" class="avatar-big">?</div>
+              <div class="identity-info">
+                <div id="active-student-name" class="name-display">Студент таңдалмады</div>
+                <div id="active-student-score" class="score-display">Буззерді басыңыз немесе тізімнен шертіңіз</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Topic Card -->
+          <div id="active-topic-card" class="turn-card empty-state">
+            <div class="turn-card-sub">ТАҢДАЛҒАН ТАҚЫРЫП:</div>
+            <div class="topic-identity">
+              <span id="active-topic-badge" class="topic-pill">Тақырып таңдалмады</span>
+              <div id="active-topic-title" class="topic-desc-display">Ұяшықты ашыңыз немесе төменнен таңдаңыз</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Start Question Action Bar -->
+        <div class="turn-action-bar">
+          <button id="btn-start-question" class="btn-primary-action" disabled>
+            <span class="btn-icon">❓</span>
+            <span>СҰРАҚТЫ БАСТАУ (30 СЕКУНД)</span>
+          </button>
+          <button id="btn-random-topic" class="btn-secondary-action">
+            <span>🎲 Кездейсоқ сұрақ</span>
+          </button>
+        </div>
+
+        <!-- 5 Topics Interactive Grid -->
+        <div class="topics-section">
+          <div class="section-subtitle">
+            <span>📚 Силлабус бойынша 5 негізгі тақырып:</span>
+            <small>(Кез келгенін басып таңдай аласыз)</small>
+          </div>
+          <div id="topics-grid" class="topics-grid">
+            <!-- Dynamically populated from topics.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 3: 16 Students Scoreboard (Рейтинг Кестесі) -->
+      <section class="scoreboard-panel glass-card">
+        <div class="scoreboard-header">
+          <div class="header-left">
+            <span class="icon-title">👥</span>
+            <h3>16 СТУДЕНТ РЕЙТИНГІ</h3>
+          </div>
+          <span class="student-count-badge">16 қатысушы</span>
+        </div>
+
+        <div class="search-box">
+          <input type="text" id="student-search" placeholder="Студентті іздеу...">
+          <span class="search-icon">🔍</span>
+        </div>
+
+        <div id="scoreboard-list" class="scoreboard-list">
+          <!-- Dynamically populated 16 students -->
+        </div>
+
+        <div class="scoreboard-footer-note">
+          <small>💡 «+10» / «-5» түймелері ұпайды қолмен түзеуге мүмкіндік береді.</small>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============================================================
+       VIEW B: STUDENT MOBILE PHONE VIEW (СТУДЕНТ ПУЛЬТЫ)
+       ============================================================ -->
+  <div id="view-player" class="player-container hidden">
+    <!-- Student Registration Card (if name not selected yet) -->
+    <div id="player-reg-card" class="player-card glass-popup">
+      <div class="player-reg-header">
+        <span class="reg-emblem">🎓</span>
+        <h2>ОЙЫНҒА ҚОСЫЛУ</h2>
+        <p>16 студенттің ішінен өз аты-жөніңізді таңдаңыз:</p>
+      </div>
+
+      <div id="player-name-picker" class="player-name-grid">
+        <!-- 16 student selection buttons -->
+      </div>
+    </div>
+
+    <!-- Active Buzzer Remote Screen (Once student registers) -->
+    <div id="player-remote-screen" class="player-remote-wrapper hidden">
+      <!-- Player Status Header -->
+      <div class="player-header-card glass-card">
+        <div class="player-profile-left">
+          <div id="my-avatar" class="my-avatar">?</div>
+          <div class="my-meta">
+            <div id="my-name" class="my-name">Студент</div>
+            <div id="my-score" class="my-score">0 ұпай</div>
+          </div>
+        </div>
+        <button id="btn-change-student" class="btn-change-profile">Ауыстыру</button>
+      </div>
+
+      <!-- Buzzer Signal Banner -->
+      <div id="player-buzzer-status" class="buzzer-state-banner state-ready">
+        <span class="state-icon">🔔</span>
+        <span id="player-status-text" class="state-text">РАУНД БАСТАЛДЫ! БАСУҒА ДАЙЫН!</span>
+      </div>
+
+      <!-- GIANT INTERACTIVE BUZZER BUTTON -->
+      <div class="buzzer-button-container">
+        <button id="btn-mobile-buzzer" class="giant-buzzer-btn">
+          <div class="buzzer-inner-glow"></div>
+          <div class="buzzer-content">
+            <span class="buzzer-icon">🚨</span>
+            <span class="buzzer-text">ЖАУАП БЕРЕМІН!</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Live Queue notification -->
+      <div id="player-buzz-feedback" class="player-feedback-box hidden">
+        <!-- Message: "Сіз 1-ші болып бастыңыз!" -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 1: QUIZ QUESTION MODAL (30s TIMER & OPTIONS)
+       ============================================================ -->
+  <div id="modal-question" class="modal-overlay">
+    <div class="modal-window question-modal-content glass-popup">
+      <div class="qmodal-top">
+        <div class="qmodal-meta">
+          <span id="qmodal-topic" class="qtopic-tag">Тақырып</span>
+          <span id="qmodal-points" class="qpoints-tag">+20 Ұпай</span>
+        </div>
+
+        <!-- Countdown Timer Ring -->
+        <div class="timer-box">
+          <svg class="timer-svg" viewBox="0 0 100 100">
+            <circle class="timer-track" cx="50" cy="50" r="45"></circle>
+            <circle id="qmodal-timer-circle" class="timer-bar" cx="50" cy="50" r="45"></circle>
+          </svg>
+          <div id="qmodal-timer-num" class="timer-seconds">30</div>
+        </div>
+
+        <button id="btn-close-qmodal" class="modal-close-btn" title="Жабу">&times;</button>
+      </div>
+
+      <div id="qmodal-student" class="qmodal-student-callout">
+        Жауап беруші: Студент
+      </div>
+
+      <div class="qmodal-body">
+        <h3 id="qmodal-text" class="question-text">
+          Сұрақ мәтіні осында көрсетіледі...
+        </h3>
+
+        <div id="qmodal-options" class="options-container">
+          <!-- 4 Multiple Choice Options (A, B, C, D) -->
+        </div>
+
+        <!-- Educational Explanation Card -->
+        <div id="qmodal-explanation" class="explanation-box hidden">
+          <div class="exp-title">📖 Түсіндірме & Тарихи дерек:</div>
+          <div id="qmodal-exp-text" class="exp-text"></div>
+        </div>
+      </div>
+
+      <div class="qmodal-footer">
+        <div class="footer-left">
+          <button id="btn-reveal-answer" class="btn-reveal">
+            👁️ Дұрыс жауапты көру
+          </button>
+        </div>
+        <div class="footer-right">
+          <button id="btn-answer-pass" class="btn-verdict btn-pass">
+            Өткізу ⏭️
+          </button>
+          <button id="btn-answer-wrong" class="btn-verdict btn-wrong">
+            Қате ❌
+          </button>
+          <button id="btn-answer-correct" class="btn-verdict btn-correct">
+            Дұрыс! (+ұпай) ✨
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 2: 🎁 SUPER GIFT / JACKPOT: HACKALEMAI (Баршаға промокод)
+       ============================================================ -->
+  <div id="modal-gift" class="modal-overlay">
+    <div class="modal-window gift-modal-content glass-popup">
+      <div class="gift-chest-animation">
+        <div class="gift-chest-icon">🎁</div>
+      </div>
+
+      <div class="gift-modal-header">
+        <span class="gift-super-tag">БҮКІЛ ТОПҚА ЖӘНЕ БАРЛЫҚ СТУДЕНТТЕРГЕ СУПЕР СЫЙЛЫҚ!</span>
+        <h2 class="gift-headline">🎉 ҚҰТТЫҚТАЙМЫЗ! 🎉</h2>
+        <p class="gift-subline">3 АЙ ТЕГІН КИНО КӨРУ ЖАЗЫЛЫМЫ БАРЛЫҒЫҢЫЗҒА ТҮСТІ!</p>
+      </div>
+
+      <div class="promo-card-display">
+        <div class="promo-label">СІЗДІҢ ПРОМОКОДЫҢЫЗ:</div>
+        <div class="promo-code-box">
+          <span id="promo-code-text" class="promo-code-val">HACKALEMAI</span>
+          <button id="btn-copy-promo" class="btn-copy-promo">
+            <span>📋 Көшіру</span>
+          </button>
+        </div>
+        <div class="promo-perks">
+          <span>🍿 3 ай тегін кино мен сериалдар жазылымы</span>
+          <span>👥 Барлық 16 қатысушыға қолжетімді!</span>
+        </div>
+      </div>
+
+      <div class="gift-modal-footer">
+        <button id="btn-close-gift" class="btn-primary-action">
+          <span>Керемет! Рахмет! 🚀</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 3: 💣 BOMB EXPLOSION MODAL (-1 ұпай)
+       ============================================================ -->
+  <div id="modal-bomb" class="modal-overlay">
+    <div class="modal-window bomb-modal-content glass-popup">
+      <div class="bomb-animation-icon">💣💥</div>
+      <h2 class="bomb-title">БОМБА ТҮСТІ!</h2>
+      <p id="bomb-victim-text" class="bomb-desc">Абайсызда минаға тап болдыңыз! Айыппұл: <strong>-1 ҰПАЙ</strong></p>
+      <button id="btn-close-bomb" class="btn-verdict btn-wrong">
+        Түсінікті 💥
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 4: PODIUM & FINAL RESULTS
+       ============================================================ -->
+  <div id="modal-podium" class="modal-overlay">
+    <div class="modal-window podium-modal-content glass-popup">
+      <div class="podium-modal-header">
+        <div class="podium-modal-title">
+          <span class="trophy-big">🏆</span>
+          <h2>ЖЕҢІМПАЗДАР ТҰҒЫРЫ</h2>
+          <p>Қазақ мәдениеті мен дәстүрі викторинасының қорытындысы</p>
+        </div>
+        <button id="btn-close-podium" class="modal-close-btn">&times;</button>
+      </div>
+
+      <div id="podium-content" class="podium-modal-body">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 5: 90 QUESTIONS BANK BROWSER
+       ============================================================ -->
+  <div id="modal-qbank" class="modal-overlay">
+    <div class="modal-window qbank-modal-content glass-popup">
+      <div class="qbank-modal-header">
+        <div class="qbank-title-box">
+          <span class="book-icon">📚</span>
+          <h2>СҰРАҚТАР ҚОРЫ (90 СҰРАҚ)</h2>
+        </div>
+        <div class="qbank-filters">
+          <select id="qbank-topic-filter" class="filter-select">
+            <option value="all">Барлық 5 тақырып</option>
+            <option value="1">1. Көшпелі мәдениет тарихы</option>
+            <option value="2">2. Дәстүрлі құндылықтар</option>
+            <option value="3">3. Әлемдік процесс & Бірегейлік</option>
+            <option value="4">4. Азия өркениеттері контексті</option>
+            <option value="5">5. Мәдени код & Тәуелсіздік</option>
+          </select>
+        </div>
+        <button id="btn-close-qbank" class="modal-close-btn">&times;</button>
+      </div>
+
+      <div id="qbank-list" class="qbank-modal-body">
+        <!-- List of all questions -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-wrapper"></div>
+
+  <!-- Main ES Module Script -->
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
