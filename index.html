@@ -278,7 +278,7 @@
 
       <!-- GIANT INTERACTIVE BUZZER BUTTON -->
       <div class="buzzer-button-container">
-        <button id="btn-mobile-buzzer" class="giant-buzzer-btn">
+        <button id="btn-mobile-buzzer" class="giant-buzzer-btn" onclick="window.app ? window.app.triggerBuzzerPress() : null">
           <div class="buzzer-inner-glow"></div>
           <div class="buzzer-content">
             <span class="buzzer-icon">🚨</span>

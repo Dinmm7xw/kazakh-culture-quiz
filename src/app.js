@@ -329,7 +329,12 @@ class QuizApp {
 
     // Update Admin UI
     if (this.buzzerWinnerText) {
-      this.buzzerWinnerText.innerHTML = `🎯 <strong>БІРІНШІ БАСҚАН:</strong> <span style="color:#FEF08A; font-size:16px;">${data.name}</span>!`;
+      this.buzzerWinnerText.innerHTML = `🎯 <strong>БІРІНШІ БАСҚАН:</strong> <span style="color:#FEF08A; font-size:18px; font-weight:800; background:rgba(245,158,11,0.25); padding:3px 10px; border-radius:8px; border:1px solid #F59E0B;">${data.name}</span>!`;
+      const monitor = document.querySelector('.buzzer-monitor-bar');
+      if (monitor) {
+        monitor.classList.add('buzzer-active-flash');
+        setTimeout(() => monitor.classList.remove('buzzer-active-flash'), 3000);
+      }
     }
 
     // Set as active student on Admin board
@@ -338,8 +343,11 @@ class QuizApp {
       this.selectStudent(matched);
     }
 
+    // Toast notification
+    this.showToast(`🚨 ${data.name} батырманы басты!`, 'warning');
+
     // Update Player UI feedback
-    if (this.currentRole === 'player') {
+    if (this.playerBuzzFeedback) {
       if (this.myStudent && this.myStudent.id === data.id) {
         this.playerBuzzFeedback.className = 'player-feedback-box win';
         this.playerBuzzFeedback.innerHTML = `🎉 СІЗ 1-ОЙЫНШЫ БОЛЫП БАСТЫҢЫЗ! Жауап беріңіз!`;
@@ -348,7 +356,11 @@ class QuizApp {
         this.playerBuzzFeedback.innerHTML = `⏳ <strong>${data.name}</strong> сізден бұрын басып үлгерді!`;
       }
       this.playerBuzzFeedback.classList.remove('hidden');
+    }
+    if (this.playerBuzzerStatus) {
       this.playerBuzzerStatus.className = 'buzzer-state-banner state-pressed';
+    }
+    if (this.playerStatusText) {
       this.playerStatusText.textContent = `КЕЗЕК: ${data.name}`;
     }
   }
@@ -361,10 +373,14 @@ class QuizApp {
       this.buzzerWinnerText.textContent = 'Раунд ашық! Студенттердің басуын күтуде...';
     }
 
-    if (this.currentRole === 'player') {
-      this.playerBuzzerStatus.className = 'buzzer-state-banner state-ready';
-      this.playerStatusText.textContent = 'РАУНД БАСТАЛДЫ! БАСУҒА ДАЙЫН!';
+    if (this.playerBuzzFeedback) {
       this.playerBuzzFeedback.classList.add('hidden');
+    }
+    if (this.playerBuzzerStatus) {
+      this.playerBuzzerStatus.className = 'buzzer-state-banner state-ready';
+    }
+    if (this.playerStatusText) {
+      this.playerStatusText.textContent = 'РАУНД БАСТАЛДЫ! БАСУҒА ДАЙЫН!';
     }
   }
 
@@ -1007,16 +1023,24 @@ class QuizApp {
     if (this.btnResetBuzzer) {
       this.btnResetBuzzer.onclick = () => {
         sounds.playClick();
+        this.buzzerLocked = false;
+        this.buzzerWinner = null;
+        if (this.buzzerWinnerText) {
+          this.buzzerWinnerText.textContent = 'Раунд ашық! Студенттердің басуын күтуде...';
+        }
         realtime.emit('BUZZER_RESET', {});
-        this.showToast('Буззер жаңа раундқа ашылды!', 'info');
+        this.showToast('Буззер барлық студенттер үшін ашылды!', 'info');
       };
     }
 
-    // Mobile Buzzer Button
+    // Mobile Buzzer Button (Click + Touchstart with 0ms delay)
     if (this.btnMobileBuzzer) {
-      this.btnMobileBuzzer.onclick = () => {
+      const onBuzzerClick = (e) => {
+        if (e && e.type === 'touchstart') e.preventDefault();
         this.triggerBuzzerPress();
       };
+      this.btnMobileBuzzer.addEventListener('touchstart', onBuzzerClick, { passive: false });
+      this.btnMobileBuzzer.addEventListener('click', onBuzzerClick);
     }
 
     // Change student profile on mobile
