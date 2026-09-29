@@ -1357,12 +1357,85 @@ document.addEventListener('click', (e) => {
     return;
   }
 
+  const closeBomb = e.target.closest('#btn-close-bomb');
+  if (closeBomb) {
+    const modal = document.getElementById('modal-bomb');
+    if (modal) modal.classList.remove('active');
+    return;
+  }
+
+  const closeGift = e.target.closest('#btn-close-gift');
+  if (closeGift) {
+    const modal = document.getElementById('modal-gift');
+    if (modal) modal.classList.remove('active');
+    return;
+  }
+
+  const closePodium = e.target.closest('#btn-close-podium');
+  if (closePodium) {
+    const modal = document.getElementById('modal-podium');
+    if (modal) modal.classList.remove('active');
+    return;
+  }
+
+  const closeQBank = e.target.closest('#btn-close-qbank');
+  if (closeQBank) {
+    const modal = document.getElementById('modal-qbank');
+    if (modal) modal.classList.remove('active');
+    return;
+  }
+
+  const closeQModal = e.target.closest('#btn-close-qmodal');
+  if (closeQModal) {
+    if (window.app) {
+      window.app.closeQuestionModal();
+    } else {
+      const modal = document.getElementById('modal-question');
+      if (modal) modal.classList.remove('active');
+    }
+    return;
+  }
+
+  // Any .modal-close-btn element inside any modal
+  const anyCloseBtn = e.target.closest('.modal-close-btn');
+  if (anyCloseBtn) {
+    const overlay = anyCloseBtn.closest('.modal-overlay');
+    if (overlay) {
+      overlay.classList.remove('active');
+      if (overlay.id === 'modal-question' && window.app) {
+        window.app.closeQuestionModal();
+      }
+    }
+    return;
+  }
+
+  // Clicking on outer dark backdrop of any modal closes it
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('active');
+    if (e.target.id === 'modal-question' && window.app) {
+      window.app.closeQuestionModal();
+    }
+    return;
+  }
+
   const submitPin = e.target.closest('#btn-submit-pin');
   if (submitPin) {
     if (window.app) {
       window.app.submitAdminPin();
     }
     return;
+  }
+});
+
+// Escape key listener to close ANY active modal instantly
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || e.code === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+      modal.classList.remove('active');
+      if (modal.id === 'modal-question' && window.app) {
+        window.app.closeQuestionModal();
+      }
+    });
   }
 });
 

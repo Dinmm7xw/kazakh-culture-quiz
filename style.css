@@ -1282,8 +1282,35 @@ body.dark-theme {
 .timer-svg { width: 54px; height: 54px; transform: rotate(-90deg); }
 .timer-track { fill: none; stroke: rgba(255, 255, 255, 0.1); stroke-width: 8; }
 .timer-bar { fill: none; stroke: var(--emerald-primary); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
-.timer-seconds { position: absolute; font-size: 17px; font-weight: 800; color: #FFF; }
-.modal-close-btn { background: rgba(255, 255, 255, 0.08); border: none; color: var(--text-muted); width: 34px; height: 34px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #FFF;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.8);
+  border-color: #EF4444;
+  color: #FFF;
+  transform: scale(1.1);
+}
+.modal-corner-close {
+  position: absolute !important;
+  top: 14px;
+  right: 14px;
+  z-index: 100;
+}
 
 .qmodal-student-callout { background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--gold-primary); padding: 7px 12px; font-size: 13.5px; font-weight: 700; color: var(--gold-light); }
 .question-text { font-size: 17.5px; font-weight: 700; line-height: 1.4; color: #FFF; }
@@ -1325,6 +1352,7 @@ body.dark-theme {
    🎁 MODAL 2: SUPER GIFT: HACKALEMAI (Баршаға Сыйлық)
    ============================================================ */
 .gift-modal-content {
+  position: relative;
   width: 100%;
   max-width: 620px;
   padding: 32px 24px;
@@ -1416,17 +1444,34 @@ body.dark-theme {
    💣 MODAL 3: BOMB EXPLOSION MODAL
    ============================================================ */
 .bomb-modal-content {
+  position: relative;
   max-width: 440px;
-  padding: 28px 20px;
+  padding: 34px 22px 24px 22px;
   text-align: center;
   align-items: center;
-  gap: 12px;
-  border-color: var(--crimson-primary);
-  background: radial-gradient(circle at 50% 30%, rgba(239, 68, 68, 0.25) 0%, rgba(15, 23, 42, 0.98) 70%);
+  gap: 14px;
+  border: 2px solid var(--crimson-primary);
+  background: radial-gradient(circle at 50% 30%, rgba(239, 68, 68, 0.3) 0%, rgba(15, 23, 42, 0.98) 70%);
+  box-shadow: 0 0 50px rgba(239, 68, 68, 0.4);
 }
 .bomb-animation-icon { font-size: 58px; animation: shakeBomb 0.6s infinite; }
 .bomb-title { font-size: 24px; font-weight: 900; color: #FCA5A5; }
 .bomb-desc { font-size: 14px; color: var(--text-main); line-height: 1.4; }
+
+.btn-close-modal-main {
+  margin-top: 10px;
+  padding: 12px 28px !important;
+  font-size: 14.5px !important;
+  font-weight: 800 !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+.btn-close-modal-main:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 25px rgba(239, 68, 68, 0.7) !important;
+}
 
 /* ============================================================
    MODAL 4: PODIUM

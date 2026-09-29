@@ -297,7 +297,7 @@
   <!-- ============================================================
        MODAL 1: QUIZ QUESTION MODAL (30s TIMER & OPTIONS)
        ============================================================ -->
-  <div id="modal-question" class="modal-overlay">
+  <div id="modal-question" class="modal-overlay" onclick="if(event.target===this && window.app) window.app.closeQuestionModal()">
     <div class="modal-window question-modal-content glass-popup">
       <div class="qmodal-top">
         <div class="qmodal-meta">
@@ -314,7 +314,7 @@
           <div id="qmodal-timer-num" class="timer-seconds">30</div>
         </div>
 
-        <button id="btn-close-qmodal" class="modal-close-btn" title="Жабу">&times;</button>
+        <button id="btn-close-qmodal" class="modal-close-btn" title="Жабу" onclick="window.app ? window.app.closeQuestionModal() : document.getElementById('modal-question').classList.remove('active')">&times;</button>
       </div>
 
       <div id="qmodal-student" class="qmodal-student-callout">
@@ -344,7 +344,7 @@
           </button>
         </div>
         <div class="footer-right">
-          <button id="btn-answer-pass" class="btn-verdict btn-pass">
+          <button id="btn-answer-pass" class="btn-verdict btn-pass" onclick="window.app ? window.app.closeQuestionModal() : document.getElementById('modal-question').classList.remove('active')">
             Өткізу ⏭️
           </button>
           <button id="btn-answer-wrong" class="btn-verdict btn-wrong">
@@ -361,8 +361,9 @@
   <!-- ============================================================
        MODAL 2: 🎁 SUPER GIFT / JACKPOT: HACKALEMAI (Баршаға промокод)
        ============================================================ -->
-  <div id="modal-gift" class="modal-overlay">
+  <div id="modal-gift" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('active')">
     <div class="modal-window gift-modal-content glass-popup">
+      <button class="modal-close-btn modal-corner-close" title="Жабу" onclick="document.getElementById('modal-gift').classList.remove('active')">&times;</button>
       <div class="gift-chest-animation">
         <div class="gift-chest-icon">🎁</div>
       </div>
@@ -388,8 +389,8 @@
       </div>
 
       <div class="gift-modal-footer">
-        <button id="btn-close-gift" class="btn-primary-action">
-          <span>Керемет! Рахмет! 🚀</span>
+        <button id="btn-close-gift" class="btn-primary-action" onclick="document.getElementById('modal-gift').classList.remove('active')">
+          <span>Керемет! Рахмет! 🚀 (Жабу)</span>
         </button>
       </div>
     </div>
@@ -398,13 +399,14 @@
   <!-- ============================================================
        MODAL 3: 💣 BOMB EXPLOSION MODAL (-1 ұпай)
        ============================================================ -->
-  <div id="modal-bomb" class="modal-overlay">
+  <div id="modal-bomb" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('active')">
     <div class="modal-window bomb-modal-content glass-popup">
+      <button class="modal-close-btn modal-corner-close" title="Жабу (Esc)" onclick="document.getElementById('modal-bomb').classList.remove('active')">&times;</button>
       <div class="bomb-animation-icon">💣💥</div>
       <h2 class="bomb-title">БОМБА ТҮСТІ!</h2>
       <p id="bomb-victim-text" class="bomb-desc">Абайсызда минаға тап болдыңыз! Айыппұл: <strong>-1 ҰПАЙ</strong></p>
-      <button id="btn-close-bomb" class="btn-verdict btn-wrong">
-        Түсінікті 💥
+      <button id="btn-close-bomb" class="btn-verdict btn-wrong btn-close-modal-main" onclick="document.getElementById('modal-bomb').classList.remove('active')">
+        <span>Түсінікті 💥 (Шығу / Жабу)</span>
       </button>
     </div>
   </div>
@@ -412,7 +414,7 @@
   <!-- ============================================================
        MODAL 4: PODIUM & FINAL RESULTS
        ============================================================ -->
-  <div id="modal-podium" class="modal-overlay">
+  <div id="modal-podium" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('active')">
     <div class="modal-window podium-modal-content glass-popup">
       <div class="podium-modal-header">
         <div class="podium-modal-title">
@@ -420,7 +422,7 @@
           <h2>ЖЕҢІМПАЗДАР ТҰҒЫРЫ</h2>
           <p>Қазақ мәдениеті мен дәстүрі викторинасының қорытындысы</p>
         </div>
-        <button id="btn-close-podium" class="modal-close-btn">&times;</button>
+        <button id="btn-close-podium" class="modal-close-btn" title="Жабу" onclick="document.getElementById('modal-podium').classList.remove('active')">&times;</button>
       </div>
 
       <div id="podium-content" class="podium-modal-body">
@@ -432,7 +434,7 @@
   <!-- ============================================================
        MODAL 5: 90 QUESTIONS BANK BROWSER
        ============================================================ -->
-  <div id="modal-qbank" class="modal-overlay">
+  <div id="modal-qbank" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('active')">
     <div class="modal-window qbank-modal-content glass-popup">
       <div class="qbank-modal-header">
         <div class="qbank-title-box">
@@ -449,7 +451,7 @@
             <option value="5">5. Мәдени код & Тәуелсіздік</option>
           </select>
         </div>
-        <button id="btn-close-qbank" class="modal-close-btn">&times;</button>
+        <button id="btn-close-qbank" class="modal-close-btn" title="Жабу" onclick="document.getElementById('modal-qbank').classList.remove('active')">&times;</button>
       </div>
 
       <div id="qbank-list" class="qbank-modal-body">
