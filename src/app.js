@@ -651,7 +651,23 @@ class QuizApp {
     }
   }
 
+  pickRandomTopicAndStart() {
+    sounds.playClick();
+    const randomTopic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+    this.selectTopic(randomTopic);
+    this.renderTopicsGrid();
+    this.startQuestionFlow();
+  }
+
   startQuestionFlow() {
+    if (!this.selectedStudent) {
+      const activeStudents = this.students.filter(s => s.active !== false);
+      if (activeStudents.length > 0) {
+        const randomSt = activeStudents[Math.floor(Math.random() * activeStudents.length)];
+        this.selectStudent(randomSt);
+      }
+    }
+
     if (!this.selectedTopic) {
       const randomTopic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
       this.selectTopic(randomTopic);
@@ -684,6 +700,8 @@ class QuizApp {
     this.qModalText.textContent = question.question;
 
     this.qModalOptions.innerHTML = '';
+    this._isQuestionAnswered = false;
+    this._lastAnswerResult = null;
     const letters = ['A', 'B', 'C', 'D'];
     question.options.forEach((opt, idx) => {
       const btn = document.createElement('button');
@@ -693,10 +711,15 @@ class QuizApp {
         <span class="option-text">${opt}</span>
       `;
       btn.addEventListener('click', () => {
+        if (this._isQuestionAnswered) return;
         sounds.playClick();
         const all = this.qModalOptions.querySelectorAll('.option-card');
         all.forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
+
+        // DIRECT INSTANT EVALUATION ON OPTION CLICK!
+        const isCorrect = (idx === this.currentQuestion.correct);
+        this.markAnswer(isCorrect, false);
       });
       this.qModalOptions.appendChild(btn);
     });
@@ -725,7 +748,7 @@ class QuizApp {
       if (this.timeLeft <= 0) {
         clearInterval(this.timerInterval);
         sounds.playWrong();
-        this.revealAnswer(false);
+        this.revealAnswer();
       }
     }, 1000);
   }
@@ -742,6 +765,7 @@ class QuizApp {
 
   revealAnswer() {
     clearInterval(this.timerInterval);
+    if (!this.currentQuestion) return;
     const all = this.qModalOptions.querySelectorAll('.option-card');
     all.forEach((btn, idx) => {
       btn.disabled = true;
@@ -751,29 +775,55 @@ class QuizApp {
         btn.classList.add('wrong');
       }
     });
-    this.qModalExplanation.classList.remove('hidden');
+    if (this.qModalExplanation) {
+      this.qModalExplanation.classList.remove('hidden');
+    }
   }
 
-  markAnswer(isCorrect) {
+  markAnswer(isCorrect, isOverride = false) {
+    if (!this.currentQuestion) return;
+    if (this._isQuestionAnswered && !isOverride) return;
+
+    const wasAlreadyAnswered = this._isQuestionAnswered;
+    const previousResult = this._lastAnswerResult;
+    this._isQuestionAnswered = true;
+    this._lastAnswerResult = isCorrect;
+
     clearInterval(this.timerInterval);
     this.revealAnswer();
     this.usedQuestionIds.add(this.currentQuestion.id);
 
+    const points = (this.currentQuestion.points || 20) * (this.currentMultiplier || 1);
+
     if (isCorrect) {
-      sounds.playWin();
-      this.confetti.blast(80);
-      const points = this.currentQuestion.points * this.currentMultiplier;
-      if (this.selectedStudent) {
-        this.selectedStudent.score += points;
-        this.selectedStudent.answeredCount += 1;
+      if (!wasAlreadyAnswered || previousResult === false) {
+        sounds.playWin();
+        this.confetti.blast(80);
+        if (this.selectedStudent) {
+          this.selectedStudent.score += points;
+          if (!wasAlreadyAnswered) {
+            this.selectedStudent.answeredCount = (this.selectedStudent.answeredCount || 0) + 1;
+          }
+          this.showToast(`🎉 Дұрыс! ${this.selectedStudent.name} +${points} ұпай еншіледі!`, 'success');
+        } else {
+          this.showToast(`🎉 Дұрыс жауап! +${points} ұпай!`, 'success');
+        }
       }
-      this.showToast(`🎉 Дұрыс жауап! +${points} ұпай қосылды!`, 'success');
     } else {
+      if (wasAlreadyAnswered && previousResult === true) {
+        if (this.selectedStudent) {
+          this.selectedStudent.score = Math.max(0, this.selectedStudent.score - points);
+        }
+      }
       sounds.playWrong();
       if (this.selectedStudent) {
-        this.selectedStudent.answeredCount += 1;
+        if (!wasAlreadyAnswered) {
+          this.selectedStudent.answeredCount = (this.selectedStudent.answeredCount || 0) + 1;
+        }
+        this.showToast(`❌ Қате жауап! Дұрысы жасылмен белгіленді.`, 'error');
+      } else {
+        this.showToast(`❌ Қате жауап!`, 'error');
       }
-      this.showToast(`❌ Қате жауап!`, 'error');
     }
 
     this.currentMultiplier = 1;
@@ -781,15 +831,21 @@ class QuizApp {
     this.renderScoreboard();
     this.updateStats();
 
-    setTimeout(() => {
+    clearTimeout(this._modalCloseTimer);
+    this._modalCloseTimer = setTimeout(() => {
       this.closeQuestionModal();
-    }, 2400);
+    }, 2800);
   }
 
   closeQuestionModal() {
     clearInterval(this.timerInterval);
-    this.modalQuestion.classList.remove('active');
+    clearTimeout(this._modalCloseTimer);
+    if (this.modalQuestion) {
+      this.modalQuestion.classList.remove('active');
+    }
     this.currentQuestion = null;
+    this._isQuestionAnswered = false;
+    this._lastAnswerResult = null;
   }
 
   // ==========================================
@@ -1127,18 +1183,13 @@ class QuizApp {
       this.btnStartQuestion.onclick = () => this.startQuestionFlow();
     }
     if (this.btnRandomTopic) {
-      this.btnRandomTopic.onclick = () => {
-        sounds.playClick();
-        const randomTopic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
-        this.selectTopic(randomTopic);
-        this.renderTopicsGrid();
-      };
+      this.btnRandomTopic.onclick = () => this.pickRandomTopicAndStart();
     }
 
     // Question modal controls
     if (this.btnRevealAnswer) this.btnRevealAnswer.onclick = () => this.revealAnswer();
-    if (this.btnCorrect) this.btnCorrect.onclick = () => this.markAnswer(true);
-    if (this.btnWrong) this.btnWrong.onclick = () => this.markAnswer(false);
+    if (this.btnCorrect) this.btnCorrect.onclick = () => this.markAnswer(true, true);
+    if (this.btnWrong) this.btnWrong.onclick = () => this.markAnswer(false, true);
     if (this.btnPass) this.btnPass.onclick = () => this.closeQuestionModal();
     if (this.btnCloseQModal) this.btnCloseQModal.onclick = () => this.closeQuestionModal();
 
@@ -1439,6 +1490,47 @@ document.addEventListener('click', (e) => {
     if (e.target.id === 'modal-question' && window.app) {
       window.app.closeQuestionModal();
     }
+    return;
+  }
+
+  const btnCorrect = e.target.closest('#btn-answer-correct');
+  if (btnCorrect) {
+    if (window.app) window.app.markAnswer(true, true);
+    return;
+  }
+
+  const btnWrong = e.target.closest('#btn-answer-wrong');
+  if (btnWrong) {
+    if (window.app) window.app.markAnswer(false, true);
+    return;
+  }
+
+  const btnPass = e.target.closest('#btn-answer-pass');
+  if (btnPass) {
+    if (window.app) {
+      window.app.closeQuestionModal();
+    } else {
+      const modal = document.getElementById('modal-question');
+      if (modal) modal.classList.remove('active');
+    }
+    return;
+  }
+
+  const btnReveal = e.target.closest('#btn-reveal-answer');
+  if (btnReveal) {
+    if (window.app) window.app.revealAnswer();
+    return;
+  }
+
+  const btnStartQ = e.target.closest('#btn-start-question');
+  if (btnStartQ) {
+    if (window.app) window.app.startQuestionFlow();
+    return;
+  }
+
+  const btnRandTopic = e.target.closest('#btn-random-topic');
+  if (btnRandTopic) {
+    if (window.app) window.app.pickRandomTopicAndStart();
     return;
   }
 

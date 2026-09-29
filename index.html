@@ -192,11 +192,11 @@
 
         <!-- Start Question Action Bar -->
         <div class="turn-action-bar">
-          <button id="btn-start-question" class="btn-primary-action" disabled>
+          <button id="btn-start-question" class="btn-primary-action" onclick="window.app ? window.app.startQuestionFlow() : null">
             <span class="btn-icon">❓</span>
             <span>СҰРАҚТЫ БАСТАУ (30 СЕКУНД)</span>
           </button>
-          <button id="btn-random-topic" class="btn-secondary-action">
+          <button id="btn-random-topic" class="btn-secondary-action" onclick="window.app ? window.app.pickRandomTopicAndStart() : null">
             <span>🎲 Кездейсоқ сұрақ</span>
           </button>
         </div>
@@ -339,7 +339,7 @@
 
       <div class="qmodal-footer">
         <div class="footer-left">
-          <button id="btn-reveal-answer" class="btn-reveal">
+          <button id="btn-reveal-answer" class="btn-reveal" onclick="window.app ? window.app.revealAnswer() : null">
             👁️ Дұрыс жауапты көру
           </button>
         </div>
@@ -347,10 +347,10 @@
           <button id="btn-answer-pass" class="btn-verdict btn-pass" onclick="window.app ? window.app.closeQuestionModal() : document.getElementById('modal-question').classList.remove('active')">
             Өткізу ⏭️
           </button>
-          <button id="btn-answer-wrong" class="btn-verdict btn-wrong">
+          <button id="btn-answer-wrong" class="btn-verdict btn-wrong" onclick="window.app ? window.app.markAnswer(false, true) : null">
             Қате ❌
           </button>
-          <button id="btn-answer-correct" class="btn-verdict btn-correct">
+          <button id="btn-answer-correct" class="btn-verdict btn-correct" onclick="window.app ? window.app.markAnswer(true, true) : null">
             Дұрыс! (+ұпай) ✨
           </button>
         </div>
