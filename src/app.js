@@ -56,13 +56,14 @@ function safeRemoveLocal(key) {
 
 class QuizApp {
   constructor() {
+    window.app = this;
     try {
       this.confetti = new ConfettiEngine();
       this.cellsManager = new CellsManager();
       this.loadState();
 
       this.isAdminAuthenticated = safeGetSession('kazakh_quiz_admin_authed') === 'true';
-      this.currentRole = this.isAdminAuthenticated ? 'admin' : 'player';
+      this.currentRole = 'player'; // ALWAYS default to player/student view!
       this.myStudent = null; // for player mode
 
       this.selectedStudent = null;
@@ -81,6 +82,7 @@ class QuizApp {
       this.buzzerWinner = null;
 
       this.initElements();
+      this.checkUrlRole();
       this.renderAuthors();
       this.renderMysteryCells();
       this.renderScoreboard();
@@ -90,7 +92,6 @@ class QuizApp {
       this.initWheel();
       this.bindEvents();
       this.updateStats();
-      this.checkUrlRole();
     } catch (err) {
       console.error('QuizApp constructor error:', err);
     }
@@ -141,14 +142,9 @@ class QuizApp {
         this.setRole('player');
         this.openPinModal();
       }
-    } else if (roleParam === 'player') {
-      this.setRole('player');
     } else {
-      if (this.isAdminAuthenticated) {
-        this.setRole('admin');
-      } else {
-        this.setRole('player');
-      }
+      // By default, for ALL users (direct visit, or role=player): ALWAYS PLAYER/STUDENT VIEW!
+      this.setRole('player');
     }
   }
 
@@ -159,18 +155,31 @@ class QuizApp {
         return;
       }
       this.currentRole = 'admin';
-      this.viewAdmin.classList.remove('hidden');
-      this.viewPlayer.classList.add('hidden');
+      if (this.viewAdmin) this.viewAdmin.classList.remove('hidden');
+      if (this.viewPlayer) this.viewPlayer.classList.add('hidden');
+      if (this.navBtnAdmin) {
+        this.navBtnAdmin.classList.add('admin-active');
+        this.navBtnAdmin.classList.remove('active');
+      }
+      if (this.navBtnStudent) {
+        this.navBtnStudent.classList.remove('active');
+      }
       if (this.adminLockIcon) this.adminLockIcon.textContent = '🔓';
       if (this.adminAccessLabel) this.adminAccessLabel.textContent = 'Админ (Шығу)';
       if (this.btnAdminAccess) this.btnAdminAccess.classList.add('unlocked');
     } else {
       this.currentRole = 'player';
-      this.viewAdmin.classList.add('hidden');
-      this.viewPlayer.classList.remove('hidden');
+      if (this.viewAdmin) this.viewAdmin.classList.add('hidden');
+      if (this.viewPlayer) this.viewPlayer.classList.remove('hidden');
+      if (this.navBtnStudent) {
+        this.navBtnStudent.classList.add('active');
+      }
+      if (this.navBtnAdmin) {
+        this.navBtnAdmin.classList.remove('admin-active', 'active');
+      }
       this.updatePlayerScreenState();
       if (this.adminLockIcon) this.adminLockIcon.textContent = this.isAdminAuthenticated ? '🔓' : '🔒';
-      if (this.adminAccessLabel) this.adminAccessLabel.textContent = this.isAdminAuthenticated ? 'Админге өту' : 'Админ кіру';
+      if (this.adminAccessLabel) this.adminAccessLabel.textContent = this.isAdminAuthenticated ? 'Админ тақтасы' : 'Админ кіру';
       if (this.btnAdminAccess) this.btnAdminAccess.classList.toggle('unlocked', this.isAdminAuthenticated);
     }
   }
@@ -179,6 +188,8 @@ class QuizApp {
     // Views and Navigation
     this.viewAdmin = document.getElementById('view-admin');
     this.viewPlayer = document.getElementById('view-player');
+    this.navBtnStudent = document.getElementById('nav-btn-student');
+    this.navBtnAdmin = document.getElementById('nav-btn-admin');
     this.btnAdminAccess = document.getElementById('btn-admin-access');
     this.adminLockIcon = document.getElementById('admin-lock-icon');
     this.adminAccessLabel = document.getElementById('admin-access-label');
@@ -469,12 +480,7 @@ class QuizApp {
       const q = cell.questionRef;
       const matchedTopic = TOPICS.find(t => t.id === q.topicId) || TOPICS[0];
       this.selectTopic(matchedTopic);
-
-      if (this.selectedStudent) {
-        this.openQuestionModal(q);
-      } else {
-        this.showToast(`❓ ${q.points} ұпайлық сұрақ ашылды! Жауап беретін студентті белгілеңіз.`, 'info');
-      }
+      this.openQuestionModal(q);
     }
   }
 
@@ -618,19 +624,21 @@ class QuizApp {
   }
 
   updateTurnControls() {
-    const ready = this.selectedStudent && this.selectedTopic;
-    this.btnStartQuestion.disabled = !ready;
-    if (ready) {
-      this.btnStartQuestion.classList.add('btn-pulse');
-    } else {
-      this.btnStartQuestion.classList.remove('btn-pulse');
+    if (this.btnStartQuestion) {
+      this.btnStartQuestion.disabled = false;
+      const ready = this.selectedStudent && this.selectedTopic;
+      if (ready) {
+        this.btnStartQuestion.classList.add('btn-pulse');
+      } else {
+        this.btnStartQuestion.classList.remove('btn-pulse');
+      }
     }
   }
 
   startQuestionFlow() {
-    if (!this.selectedStudent || !this.selectedTopic) {
-      this.showToast('Алдымен студент пен тақырыпты таңдаңыз!', 'warning');
-      return;
+    if (!this.selectedTopic) {
+      const randomTopic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+      this.selectTopic(randomTopic);
     }
 
     const topicQuestions = QUESTIONS.filter(q => q.topicId === this.selectedTopic.id);
@@ -945,6 +953,20 @@ class QuizApp {
   }
 
   bindEvents() {
+    // Role Switcher Navigation Tabs
+    if (this.navBtnStudent) {
+      this.navBtnStudent.onclick = () => {
+        sounds.playClick();
+        this.setRole('player');
+      };
+    }
+    if (this.navBtnAdmin) {
+      this.navBtnAdmin.onclick = () => {
+        sounds.playClick();
+        this.handleAdminAccessClick();
+      };
+    }
+
     // Admin PIN Protection
     if (this.btnAdminAccess) {
       this.btnAdminAccess.onclick = () => this.handleAdminAccessClick();
@@ -1271,6 +1293,34 @@ class QuizApp {
 
 // Global delegated click listeners ensuring critical controls always respond instantly
 document.addEventListener('click', (e) => {
+  const navStudent = e.target.closest('#nav-btn-student');
+  if (navStudent) {
+    if (window.app) {
+      window.app.setRole('player');
+    } else {
+      const vAdmin = document.getElementById('view-admin');
+      const vPlayer = document.getElementById('view-player');
+      if (vAdmin) vAdmin.classList.add('hidden');
+      if (vPlayer) vPlayer.classList.remove('hidden');
+    }
+    return;
+  }
+
+  const navAdmin = e.target.closest('#nav-btn-admin');
+  if (navAdmin) {
+    if (window.app) {
+      window.app.handleAdminAccessClick();
+    } else {
+      const modal = document.getElementById('modal-pin');
+      if (modal) {
+        modal.classList.add('active');
+        const input = document.getElementById('admin-pin-input');
+        if (input) input.focus();
+      }
+    }
+    return;
+  }
+
   const adminBtn = e.target.closest('#btn-admin-access');
   if (adminBtn) {
     if (window.app) {

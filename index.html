@@ -27,22 +27,29 @@
         <span class="brand-text">АЛТЫН ОРДА • ВИКТОРИНА</span>
       </div>
 
+      <!-- Center Segmented Role Switcher Tabs -->
+      <div class="role-nav-switcher">
+        <button id="nav-btn-student" class="nav-switch-tab active" title="Қатысушы / Студенттер пульты" onclick="window.app ? window.app.setRole('player') : null">
+          <span>🎓 Студенттер пульты</span>
+        </button>
+        <button id="nav-btn-admin" class="nav-switch-tab" title="Админ / Бақыт дөңгелегі (PIN: 165165)" onclick="window.app ? window.app.handleAdminAccessClick() : (document.getElementById('modal-pin') && document.getElementById('modal-pin').classList.add('active'))">
+          <span id="admin-lock-icon">🔒</span>
+          <span id="admin-access-label">Админ тақтасы</span>
+        </button>
+      </div>
+
       <div class="role-right-tools">
         <button id="btn-share-link" class="btn-share-link" title="Студенттерге сілтеме көшіру" onclick="window.app ? window.app.handleShareLinkClick() : null">
-          <span>🔗 Топқа сілтеме көшіру</span>
-        </button>
-        <button id="btn-admin-access" class="btn-admin-access" title="Админ кіру" onclick="window.app ? window.app.handleAdminAccessClick() : (document.getElementById('modal-pin') && document.getElementById('modal-pin').classList.add('active'))">
-          <span id="admin-lock-icon">🔒</span>
-          <span id="admin-access-label">Админ кіру</span>
+          <span>🔗 Топқа сілтеме</span>
         </button>
       </div>
     </div>
   </nav>
 
   <!-- ============================================================
-       VIEW A: ADMIN / PROJECTOR VIEW (ҮЛКЕН ЭКРАН)
+       VIEW A: ADMIN / PROJECTOR VIEW (ҮЛКЕН ЭКРАН) - HIDDEN BY DEFAULT
        ============================================================ -->
-  <div id="view-admin" class="app-container">
+  <div id="view-admin" class="app-container hidden">
     <!-- Top Header -->
     <header class="top-header">
       <div class="header-branding">
@@ -233,9 +240,9 @@
   </div>
 
   <!-- ============================================================
-       VIEW B: STUDENT MOBILE PHONE VIEW (СТУДЕНТ ПУЛЬТЫ)
+       VIEW B: STUDENT MOBILE PHONE VIEW (СТУДЕНТ ПУЛЬТЫ) - DEFAULT ACTIVE
        ============================================================ -->
-  <div id="view-player" class="player-container hidden">
+  <div id="view-player" class="player-container">
     <!-- Student Registration Card (if name not selected yet) -->
     <div id="player-reg-card" class="player-card glass-popup">
       <div class="player-reg-header">
