@@ -35,16 +35,16 @@ class QuizApp {
     this.buzzerWinner = null;
 
     this.initElements();
-    this.checkUrlRole();
-    this.initRealtimeListeners();
-    this.initWheel();
     this.renderAuthors();
     this.renderMysteryCells();
     this.renderScoreboard();
     this.renderTopicsGrid();
     this.renderPlayerPicker();
+    this.initRealtimeListeners();
+    this.initWheel();
     this.bindEvents();
     this.updateStats();
+    this.checkUrlRole();
   }
 
   loadState() {

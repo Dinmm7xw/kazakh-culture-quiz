@@ -985,6 +985,20 @@ body.dark-theme {
   min-height: calc(100vh - 60px);
 }
 
+.player-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 24px 20px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid var(--border-gold);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  margin: 10px auto;
+}
+
 .player-reg-header {
   text-align: center;
   display: flex;
