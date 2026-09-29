@@ -52,6 +52,11 @@ class QuizApp {
       const savedStudents = localStorage.getItem('kazakh_quiz_students_v2');
       if (savedStudents) {
         this.students = JSON.parse(savedStudents);
+        STUDENTS.forEach(defSt => {
+          if (!this.students.some(s => s.id === defSt.id)) {
+            this.students.push(JSON.parse(JSON.stringify(defSt)));
+          }
+        });
       } else {
         this.students = JSON.parse(JSON.stringify(STUDENTS));
       }
@@ -429,8 +434,9 @@ class QuizApp {
     this.playerNamePicker.innerHTML = '';
     this.students.forEach(st => {
       const btn = document.createElement('button');
-      btn.className = 'player-pick-btn';
-      btn.textContent = st.name;
+      const isTeacher = !!st.isTeacher;
+      btn.className = `player-pick-btn ${isTeacher ? 'teacher-pick-btn' : ''}`;
+      btn.innerHTML = `${isTeacher ? '👩‍🏫 ' : ''}${st.name}${isTeacher ? ' <small style="display:block; font-size:10px; color:#E9D5FF; font-weight:700;">(Оқытушы)</small>' : ''}`;
       btn.addEventListener('click', () => {
         sounds.playClick();
         this.myStudent = st;
@@ -744,12 +750,13 @@ class QuizApp {
       else if (index === 1 && st.score > 0) rankBadge = `<span class="rank-badge silver">🥈</span>`;
       else if (index === 2 && st.score > 0) rankBadge = `<span class="rank-badge bronze">🥉</span>`;
 
+      const teacherTag = st.isTeacher ? `<span class="teacher-tag">👩‍🏫 Ұстаз</span>` : '';
       card.innerHTML = `
         <div class="student-left">
           ${rankBadge}
           <div class="student-avatar" style="background-color: ${st.color}">${st.name.charAt(0)}</div>
           <div class="student-meta">
-            <span class="student-name">${st.name}</span>
+            <span class="student-name">${st.name} ${teacherTag}</span>
             <span class="student-ans">${st.answeredCount} сұрақ</span>
           </div>
         </div>

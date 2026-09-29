@@ -15,7 +15,8 @@ export const STUDENTS = [
   { id: 13, name: "Рамазан Ерасыл", score: 0, answeredCount: 0, color: "#EAB308", active: true },
   { id: 14, name: "Серікбек Жасұлан", score: 0, answeredCount: 0, color: "#0EA5E9", active: true },
   { id: 15, name: "Төлеген Нұрлыбек", score: 0, answeredCount: 0, color: "#A855F7", active: true },
-  { id: 16, name: "Шаихова Аружан", score: 0, answeredCount: 0, color: "#F43F5E", active: true }
+  { id: 16, name: "Шаихова Аружан", score: 0, answeredCount: 0, color: "#F43F5E", active: true },
+  { id: 17, name: "Ибраева Меруерт Болатқызы", score: 0, answeredCount: 0, color: "#7C3AED", active: true, isTeacher: true, title: "Оқытушы 👩‍🏫" }
 ];
 
 export const AUTHORS = [

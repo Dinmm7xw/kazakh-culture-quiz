@@ -219,9 +219,7 @@ export class FortuneWheel {
 
       const displayName = item.shortName || item.shortTitle || item.name || item.title || `Сектор ${i + 1}`;
       
-      // Auto font sizing based on slice count
-      let fontSize = numSlices > 12 ? 11 : numSlices > 6 ? 13 : 15;
-      ctx.font = `600 ${fontSize}px 'Outfit', 'Inter', sans-serif`;
+      ctx.font = `700 ${fontSize}px 'Montserrat', 'Rubik', sans-serif`;
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 4;
 

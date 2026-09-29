@@ -27,8 +27,8 @@
   --border-gold: rgba(245, 158, 11, 0.35);
   --border-glow: rgba(59, 130, 246, 0.35);
 
-  --font-display: 'Cinzel', serif;
-  --font-body: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Rubik', 'Montserrat', sans-serif;
+  --font-body: 'Montserrat', 'Golos Text', system-ui, sans-serif;
 
   --radius-lg: 16px;
   --radius-md: 12px;
@@ -1422,6 +1422,34 @@ body.dark-theme {
   .main-grid { grid-template-columns: 1fr; }
   .wheel-panel { order: 1; }
   .turn-arena { order: 2; }
-  .scoreboard-panel { order: 3; max-height: 480px; }
+.scoreboard-panel { order: 3; max-height: 480px; }
   .scoreboard-list { max-height: 300px; }
 }
+
+/* ============================================================
+   TEACHER BADGE & SPECIAL BUTTON STYLES
+   ============================================================ */
+.teacher-tag {
+  font-size: 10px;
+  background: linear-gradient(135deg, #7C3AED, #A855F7);
+  color: #FFF;
+  padding: 1.5px 7px;
+  border-radius: 8px;
+  font-weight: 700;
+  margin-left: 5px;
+  border: 1px solid #C084FC;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+}
+
+.teacher-pick-btn {
+  border: 1.5px solid #A855F7 !important;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.35), rgba(76, 29, 149, 0.45)) !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+  font-weight: 800 !important;
+}
+.teacher-pick-btn:hover {
+  background: linear-gradient(135deg, #7C3AED, #6D28D9) !important;
+  border-color: #E9D5FF !important;
+  transform: scale(1.02) !important;
+}
+
