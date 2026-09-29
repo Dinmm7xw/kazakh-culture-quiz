@@ -379,12 +379,51 @@ class QuizApp {
     }
   }
 
+  resetBuzzerRound() {
+    sounds.playClick();
+    this.buzzerLocked = false;
+    this.buzzerWinner = null;
+    this.selectedStudent = null;
+
+    if (this.buzzerWinnerText) {
+      this.buzzerWinnerText.textContent = 'Раунд ашық! Студенттердің басуын күтуде...';
+    }
+
+    const monitor = document.querySelector('.buzzer-monitor-bar');
+    if (monitor) {
+      monitor.classList.remove('buzzer-active-flash');
+    }
+
+    if (this.activeStudentName) {
+      this.activeStudentName.textContent = 'Студент таңдалмады';
+    }
+    if (this.activeStudentScore) {
+      this.activeStudentScore.textContent = '0 ұпай • 0 сұрақ';
+    }
+    if (this.activeStudentAvatar) {
+      this.activeStudentAvatar.textContent = '?';
+      this.activeStudentAvatar.style.backgroundColor = '';
+    }
+    if (this.activeStudentCard) {
+      this.activeStudentCard.classList.remove('active-state');
+      this.activeStudentCard.classList.add('empty-state');
+    }
+    this.updateTurnControls();
+
+    realtime.emit('BUZZER_RESET', {});
+    this.showToast('🔔 Жаңа раунд басталды! Буззер барлық студенттер үшін ашылды.', 'success');
+  }
+
   handleBuzzerResetReceived() {
     this.buzzerLocked = false;
     this.buzzerWinner = null;
 
     if (this.buzzerWinnerText) {
       this.buzzerWinnerText.textContent = 'Раунд ашық! Студенттердің басуын күтуде...';
+    }
+    const monitor = document.querySelector('.buzzer-monitor-bar');
+    if (monitor) {
+      monitor.classList.remove('buzzer-active-flash');
     }
 
     if (this.playerBuzzFeedback) {
@@ -1303,16 +1342,7 @@ class QuizApp {
 
     // Reset Buzzer button
     if (this.btnResetBuzzer) {
-      this.btnResetBuzzer.onclick = () => {
-        sounds.playClick();
-        this.buzzerLocked = false;
-        this.buzzerWinner = null;
-        if (this.buzzerWinnerText) {
-          this.buzzerWinnerText.textContent = 'Раунд ашық! Студенттердің басуын күтуде...';
-        }
-        realtime.emit('BUZZER_RESET', {});
-        this.showToast('Буззер барлық студенттер үшін ашылды!', 'info');
-      };
+      this.btnResetBuzzer.onclick = () => this.resetBuzzerRound();
     }
 
     // Mobile Buzzer Button (Click + Touchstart with 0ms delay)
@@ -1790,6 +1820,12 @@ document.addEventListener('click', (e) => {
   const btnReset = e.target.closest('#btn-reset');
   if (btnReset) {
     if (window.app) window.app.resetGame();
+    return;
+  }
+
+  const btnResetBuzzer = e.target.closest('#btn-reset-buzzer');
+  if (btnResetBuzzer) {
+    if (window.app) window.app.resetBuzzerRound();
     return;
   }
 
