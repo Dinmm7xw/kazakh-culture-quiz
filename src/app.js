@@ -141,6 +141,8 @@ class QuizApp {
         this.setRole('player');
         this.openPinModal();
       }
+    } else if (roleParam === 'player') {
+      this.setRole('player');
     } else {
       if (this.isAdminAuthenticated) {
         this.setRole('admin');
