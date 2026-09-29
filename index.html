@@ -19,21 +19,21 @@
   <div class="bg-glow-orb orb-2"></div>
   <div class="bg-glow-orb orb-3"></div>
 
-  <!-- ROLE SWITCHER BAR (Админ экраны мен Студент пультын ауыстыру) -->
+  <!-- TOP BRANDING & ACCESS BAR -->
   <nav class="role-nav-bar">
     <div class="role-nav-inner">
-      <div class="role-switch-tabs">
-        <button id="btn-role-admin" class="role-tab-btn active">
-          <span>🖥️ Үлкен Экран / Админ</span>
-        </button>
-        <button id="btn-role-player" class="role-tab-btn">
-          <span>📱 Студент Пульты (Телефон)</span>
-        </button>
+      <div class="brand-tag">
+        <span class="brand-ornament">☀️</span>
+        <span class="brand-text">АЛТЫН ОРДА • ВИКТОРИНА</span>
       </div>
 
       <div class="role-right-tools">
         <button id="btn-share-link" class="btn-share-link" title="Студенттерге сілтеме көшіру">
           <span>🔗 Топқа сілтеме көшіру</span>
+        </button>
+        <button id="btn-admin-access" class="btn-admin-access" title="Админ кіру">
+          <span id="admin-lock-icon">🔒</span>
+          <span id="admin-access-label">Админ кіру</span>
         </button>
       </div>
     </div>
@@ -448,6 +448,30 @@
       <div id="qbank-list" class="qbank-modal-body">
         <!-- List of all questions -->
       </div>
+    </div>
+  <!-- ============================================================
+       MODAL 6: 🔒 ADMIN PIN CODE AUTHORIZATION (165165)
+       ============================================================ -->
+  <div id="modal-pin" class="modal-overlay">
+    <div class="modal-window pin-modal-content glass-popup">
+      <div class="pin-modal-header">
+        <span class="pin-icon">🔐</span>
+        <h2>АДМИН ПАНЕЛІНЕ КІРУ</h2>
+        <p>Квизді басқару үшін 6 таңбалы құпия PIN-кодты енгізіңіз:</p>
+      </div>
+
+      <div class="pin-form-body">
+        <input type="password" id="admin-pin-input" class="pin-secret-input" maxlength="6" placeholder="******" autocomplete="off" inputmode="numeric">
+        <button id="btn-submit-pin" class="btn-primary-action">
+          <span>Кіру ➔</span>
+        </button>
+      </div>
+
+      <div id="pin-error-msg" class="pin-error-text hidden">
+        ❌ Қате PIN-код! Қайта көріңіз.
+      </div>
+
+      <button id="btn-close-pin" class="modal-close-btn" title="Жабу">&times;</button>
     </div>
   </div>
 

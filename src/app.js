@@ -7,13 +7,16 @@ import { ConfettiEngine } from './confetti.js';
 import { CellsManager, PROMO_CODE_INFO } from './cells.js';
 import { realtime } from './realtime.js';
 
+const ADMIN_PIN = "165165";
+
 class QuizApp {
   constructor() {
     this.confetti = new ConfettiEngine();
     this.cellsManager = new CellsManager();
     this.loadState();
 
-    this.currentRole = 'admin'; // 'admin' or 'player'
+    this.isAdminAuthenticated = sessionStorage.getItem('kazakh_quiz_admin_authed') === 'true';
+    this.currentRole = this.isAdminAuthenticated ? 'admin' : 'player';
     this.myStudent = null; // for player mode
 
     this.selectedStudent = null;
@@ -77,26 +80,42 @@ class QuizApp {
   checkUrlRole() {
     const params = new URLSearchParams(window.location.search);
     const roleParam = params.get('role');
-    if (roleParam === 'player' || window.innerWidth <= 600) {
-      this.setRole('player');
+    if (roleParam === 'admin') {
+      if (this.isAdminAuthenticated) {
+        this.setRole('admin');
+      } else {
+        this.setRole('player');
+        this.openPinModal();
+      }
     } else {
-      this.setRole('admin');
+      if (this.isAdminAuthenticated) {
+        this.setRole('admin');
+      } else {
+        this.setRole('player');
+      }
     }
   }
 
   setRole(role) {
-    this.currentRole = role;
-    if (role === 'player') {
+    if (role === 'admin') {
+      if (!this.isAdminAuthenticated) {
+        this.openPinModal();
+        return;
+      }
+      this.currentRole = 'admin';
+      this.viewAdmin.classList.remove('hidden');
+      this.viewPlayer.classList.add('hidden');
+      if (this.adminLockIcon) this.adminLockIcon.textContent = '🔓';
+      if (this.adminAccessLabel) this.adminAccessLabel.textContent = 'Админ (Шығу)';
+      if (this.btnAdminAccess) this.btnAdminAccess.classList.add('unlocked');
+    } else {
+      this.currentRole = 'player';
       this.viewAdmin.classList.add('hidden');
       this.viewPlayer.classList.remove('hidden');
-      this.btnRolePlayer.classList.add('active');
-      this.btnRoleAdmin.classList.remove('active');
       this.updatePlayerScreenState();
-    } else {
-      this.viewPlayer.classList.add('hidden');
-      this.viewAdmin.classList.remove('hidden');
-      this.btnRoleAdmin.classList.add('active');
-      this.btnRolePlayer.classList.remove('active');
+      if (this.adminLockIcon) this.adminLockIcon.textContent = this.isAdminAuthenticated ? '🔓' : '🔒';
+      if (this.adminAccessLabel) this.adminAccessLabel.textContent = this.isAdminAuthenticated ? 'Админге өту' : 'Админ кіру';
+      if (this.btnAdminAccess) this.btnAdminAccess.classList.toggle('unlocked', this.isAdminAuthenticated);
     }
   }
 
@@ -104,9 +123,17 @@ class QuizApp {
     // Views and Navigation
     this.viewAdmin = document.getElementById('view-admin');
     this.viewPlayer = document.getElementById('view-player');
-    this.btnRoleAdmin = document.getElementById('btn-role-admin');
-    this.btnRolePlayer = document.getElementById('btn-role-player');
+    this.btnAdminAccess = document.getElementById('btn-admin-access');
+    this.adminLockIcon = document.getElementById('admin-lock-icon');
+    this.adminAccessLabel = document.getElementById('admin-access-label');
     this.btnShareLink = document.getElementById('btn-share-link');
+
+    // PIN Modal Elements
+    this.modalPin = document.getElementById('modal-pin');
+    this.adminPinInput = document.getElementById('admin-pin-input');
+    this.btnSubmitPin = document.getElementById('btn-submit-pin');
+    this.pinErrorMsg = document.getElementById('pin-error-msg');
+    this.btnClosePin = document.getElementById('btn-close-pin');
 
     // Admin Buzzer monitor
     this.buzzerWinnerText = document.getElementById('buzzer-winner-text');
@@ -799,10 +826,75 @@ class QuizApp {
     if (this.statsRemainingQ) this.statsRemainingQ.textContent = total - used;
   }
 
+  openPinModal() {
+    if (this.modalPin) {
+      this.adminPinInput.value = '';
+      this.pinErrorMsg.classList.add('hidden');
+      this.modalPin.classList.add('active');
+      setTimeout(() => {
+        if (this.adminPinInput) this.adminPinInput.focus();
+      }, 100);
+    }
+  }
+
+  submitAdminPin() {
+    const val = (this.adminPinInput ? this.adminPinInput.value : '').trim();
+    if (val === ADMIN_PIN) {
+      this.isAdminAuthenticated = true;
+      sessionStorage.setItem('kazakh_quiz_admin_authed', 'true');
+      this.modalPin.classList.remove('active');
+      this.setRole('admin');
+      sounds.playWin();
+      this.showToast('✅ Қош келдіңіз, Админ! Басқару панелі ашылды.', 'success');
+    } else {
+      sounds.playWrong();
+      this.pinErrorMsg.classList.remove('hidden');
+      if (this.adminPinInput) {
+        this.adminPinInput.value = '';
+        this.adminPinInput.focus();
+      }
+    }
+  }
+
   bindEvents() {
-    // Role switcher
-    this.btnRoleAdmin.onclick = () => this.setRole('admin');
-    this.btnRolePlayer.onclick = () => this.setRole('player');
+    // Admin PIN Protection logic
+    if (this.btnAdminAccess) {
+      this.btnAdminAccess.onclick = () => {
+        sounds.playClick();
+        if (this.isAdminAuthenticated) {
+          if (this.currentRole === 'admin') {
+            if (confirm('Админ режимінен шығып, құлыптағыңыз келе ме?')) {
+              this.isAdminAuthenticated = false;
+              sessionStorage.removeItem('kazakh_quiz_admin_authed');
+              this.setRole('player');
+              this.showToast('Админ панелі құлыпталды', 'info');
+            }
+          } else {
+            this.setRole('admin');
+          }
+        } else {
+          this.openPinModal();
+        }
+      };
+    }
+
+    if (this.btnSubmitPin) {
+      this.btnSubmitPin.onclick = () => this.submitAdminPin();
+    }
+
+    if (this.adminPinInput) {
+      this.adminPinInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          this.submitAdminPin();
+        }
+      };
+    }
+
+    if (this.btnClosePin) {
+      this.btnClosePin.onclick = () => {
+        this.modalPin.classList.remove('active');
+      };
+    }
 
     // Share link to group
     this.btnShareLink.onclick = () => {

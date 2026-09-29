@@ -103,30 +103,50 @@ body.dark-theme {
   align-items: center;
 }
 
-.role-switch-tabs {
+.brand-tag {
   display: flex;
-  background: rgba(255, 255, 255, 0.06);
-  padding: 4px;
-  border-radius: 12px;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+}
+.brand-ornament {
+  font-size: 18px;
+}
+.brand-text {
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--gold-glow);
 }
 
-.role-tab-btn {
-  padding: 6px 14px;
-  background: transparent;
-  border: none;
+.role-right-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-admin-access {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  color: var(--text-muted);
+  color: #FFF;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
 }
-.role-tab-btn.active {
-  background: var(--blue-primary);
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+.btn-admin-access:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: var(--gold-glow);
+}
+.btn-admin-access.unlocked {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--emerald-primary);
+  color: #6EE7B7;
 }
 
 .btn-share-link {
@@ -144,6 +164,61 @@ body.dark-theme {
   cursor: pointer;
   transition: all 0.2s ease;
 }
+.btn-share-link:hover {
+  background: rgba(245, 158, 11, 0.25);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   PIN CODE AUTHORIZATION MODAL
+   ============================================================ */
+.pin-modal-content {
+  max-width: 440px;
+  padding: 28px 24px;
+  text-align: center;
+  align-items: center;
+  gap: 14px;
+}
+.pin-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.pin-icon { font-size: 40px; }
+.pin-modal-header h2 { font-size: 20px; font-weight: 800; color: #FFF; }
+.pin-modal-header p { font-size: 12.5px; color: var(--text-muted); }
+
+.pin-form-body {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+.pin-secret-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1.5px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  color: #FFF;
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 6px;
+  outline: none;
+  font-family: monospace;
+}
+.pin-secret-input:focus {
+  border-color: var(--gold-glow);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.35);
+}
+
+.pin-error-text {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #FCA5A5;
+}
+
 .btn-share-link:hover {
   background: rgba(245, 158, 11, 0.25);
   transform: translateY(-1px);
